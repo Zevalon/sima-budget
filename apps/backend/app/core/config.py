@@ -23,6 +23,8 @@ class Settings(BaseSettings):
     session_secret: str = "development-only-change-me"
     session_ttl_seconds: int = 28_800
     csrf_secret: str = "development-only-change-me"
+    auth_max_failed_attempts: int = 5
+    auth_lock_seconds: int = 900
     file_storage_driver: Literal["local", "s3"] = "local"
     file_storage_path: str = "../../runtime/uploads"
     max_upload_size_mb: int = 20

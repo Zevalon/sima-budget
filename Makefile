@@ -1,4 +1,4 @@
-.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify phase0-check phase1a-check
+.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify bootstrap-admin phase0-check phase1a-check phase1b-check
 
 help:
 	@echo "SIMA development commands"
@@ -12,10 +12,12 @@ help:
 	@echo "  make typecheck              Backend + frontend type checks"
 	@echo "  make test                   Backend + frontend tests"
 	@echo "  make openapi                Export OpenAPI schema"
-	@echo "  make foundation-bootstrap   Seed idempotent Phase 1A foundation data"
-	@echo "  make foundation-verify      Verify Phase 1A foundation data"
+	@echo "  make foundation-bootstrap   Seed idempotent foundation data"
+	@echo "  make foundation-verify      Verify foundation data"
+	@echo "  make bootstrap-admin        Create/reset the first System Administrator"
 	@echo "  make phase0-check           Run Phase 0 local checks"
 	@echo "  make phase1a-check          Run Phase 0 regression + Phase 1A checks"
+	@echo "  make phase1b-check          Run Phase 1A regression + authentication checks"
 
 bootstrap:
 	./scripts/bootstrap-dev.sh
@@ -60,8 +62,14 @@ foundation-bootstrap:
 foundation-verify:
 	cd apps/backend && uv run python -m scripts.verify_foundation
 
+bootstrap-admin:
+	cd apps/backend && uv run python -m scripts.bootstrap_admin
+
 phase0-check:
 	./scripts/check-phase0.sh
 
 phase1a-check:
 	./scripts/check-phase1a.sh
+
+phase1b-check:
+	./scripts/check-phase1b.sh

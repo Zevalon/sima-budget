@@ -1,21 +1,32 @@
 import { createBrowserRouter, Navigate } from "react-router-dom";
 
-import { AppShell } from "../layouts/AppShell";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
+import { LoginPage } from "../features/auth/pages/LoginPage";
+import { ProtectedRoute } from "../features/auth/ProtectedRoute";
 import { NotFoundPage } from "../features/system/pages/NotFoundPage";
+import { AppShell } from "../layouts/AppShell";
 
 export const router = createBrowserRouter([
   {
-    path: "/",
-    element: <Navigate to="/app/dashboard" replace />,
+    path: "/login",
+    element: <LoginPage />,
   },
   {
-    path: "/app",
-    element: <AppShell />,
+    element: <ProtectedRoute />,
     children: [
       {
-        path: "dashboard",
-        element: <DashboardPage />,
+        path: "/",
+        element: <Navigate to="/app/dashboard" replace />,
+      },
+      {
+        path: "/app",
+        element: <AppShell />,
+        children: [
+          {
+            path: "dashboard",
+            element: <DashboardPage />,
+          },
+        ],
       },
     ],
   },

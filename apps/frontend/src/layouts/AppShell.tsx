@@ -1,5 +1,7 @@
 import { NavLink, Outlet } from "react-router-dom";
 
+import { useAuth } from "../features/auth/auth-context";
+
 const navigation = [
   ["Dashboard", "/app/dashboard"],
   ["Anggaran", "#"],
@@ -11,7 +13,19 @@ const navigation = [
   ["Administration", "#"],
 ] as const;
 
+function initials(name: string): string {
+  return name
+    .split(/\s+/)
+    .filter(Boolean)
+    .slice(0, 2)
+    .map((part) => part[0]?.toUpperCase())
+    .join("");
+}
+
 export function AppShell() {
+  const auth = useAuth();
+  const user = auth.user;
+
   return (
     <div className="app-shell">
       <aside className="sidebar">
@@ -42,17 +56,26 @@ export function AppShell() {
         <header className="topbar">
           <div>
             <span className="muted">Organisasi</span>
-            <strong>Universitas / Organisasi</strong>
+            <strong>{user?.organization_name ?? "Universitas / Organisasi"}</strong>
           </div>
           <div className="topbar-actions">
             <label>
               <span className="muted">Tahun Anggaran</span>
-              <select defaultValue="2027" aria-label="Tahun Anggaran">
+              <select defaultValue="2027" aria-label="Tahun Anggaran" disabled>
                 <option value="2027">2027</option>
               </select>
             </label>
-            <button className="avatar" type="button" aria-label="Profil pengguna">
-              AD
+            <div className="profile-summary">
+              <button className="avatar" type="button" aria-label="Profil pengguna">
+                {initials(user?.full_name ?? "User") || "U"}
+              </button>
+              <div>
+                <strong>{user?.full_name}</strong>
+                <span className="muted">{user?.username}</span>
+              </div>
+            </div>
+            <button className="secondary-button" type="button" onClick={() => void auth.logout()}>
+              Keluar
             </button>
           </div>
         </header>
