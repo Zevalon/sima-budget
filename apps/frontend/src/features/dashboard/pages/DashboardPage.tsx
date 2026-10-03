@@ -1,66 +1,37 @@
-const cards = [
-  ["Total Anggaran", "Rp50,0 M", "Baseline contoh"],
-  ["Teralokasi", "Rp45,0 M", "90% dari total"],
-  ["Committed", "Rp32,5 M", "Rencana disetujui"],
-  ["Realisasi", "Rp21,4 M", "42,8% dari total"],
-] as const;
-
 export function DashboardPage() {
   return (
     <div className="page-stack">
       <section className="page-header">
         <div>
-          <p className="eyebrow">Implementation Phase 0</p>
+          <p className="eyebrow">Implementation Phase 1B</p>
           <h1>Dashboard</h1>
           <p className="lead">
-            Fondasi UI SIMA sudah aktif. Data pada halaman ini masih contoh visual dan belum
-            terhubung ke modul anggaran.
+            Authentication dan session foundation sudah aktif. Nilai anggaran nyata belum
+            ditampilkan karena modul Fiscal Year dan Annual Budget baru dibangun pada Phase 2.
           </p>
         </div>
-        <span className="status-badge">Scaffold Ready</span>
-      </section>
-
-      <section className="stat-grid" aria-label="Ringkasan anggaran contoh">
-        {cards.map(([label, value, detail]) => (
-          <article className="stat-card" key={label}>
-            <span>{label}</span>
-            <strong>{value}</strong>
-            <small>{detail}</small>
-          </article>
-        ))}
+        <span className="status-badge">Foundation Active</span>
       </section>
 
       <section className="panel-grid">
         <article className="panel">
-          <div className="panel-heading">
-            <div>
-              <span className="muted">Project readiness</span>
-              <h2>Fondasi yang sudah tersedia</h2>
-            </div>
-          </div>
+          <span className="muted">Foundation</span>
+          <h2>Identity & Authentication</h2>
           <ul className="check-list">
-            <li>React + TypeScript application shell</li>
-            <li>FastAPI API skeleton + health endpoints</li>
-            <li>PostgreSQL Docker development service</li>
-            <li>CI, migration, testing, docs, dan checkpoint structure</li>
+            <li>Organization dan Organizational Unit foundation</li>
+            <li>Users, Roles, Permissions, dan Data Scope foundation</li>
+            <li>Opaque server-side session dengan HttpOnly cookie</li>
+            <li>CSRF protection untuk mutation request</li>
           </ul>
         </article>
 
         <article className="panel">
-          <div className="panel-heading">
-            <div>
-              <span className="muted">Next milestone</span>
-              <h2>Phase 1 — Foundation</h2>
-            </div>
-          </div>
+          <span className="muted">Tahap berikutnya</span>
+          <h2>Phase 1C — Administration</h2>
           <p>
-            Authentication, user management, RBAC + scope, organizational units, application
-            settings, dan audit infrastructure.
+            User management, role/permission management, scope evaluation, organizational units, dan
+            administration API.
           </p>
-          <div className="progress-track" aria-label="Progress desain project">
-            <div className="progress-value" />
-          </div>
-          <small>CP-01 sampai CP-05 selesai — implementasi dimulai.</small>
         </article>
       </section>
     </div>
