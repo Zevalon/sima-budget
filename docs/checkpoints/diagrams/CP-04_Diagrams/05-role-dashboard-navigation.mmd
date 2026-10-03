@@ -1,0 +1,28 @@
+flowchart TD
+    A[Authenticated User] --> B{Effective Role / Permission}
+    B --> C[Budget Administrator Dashboard]
+    B --> D[Unit PIC Dashboard]
+    B --> E[Approver Dashboard]
+    B --> F[Management Dashboard]
+    B --> G[Auditor Dashboard]
+
+    C --> C1[Budget KPIs]
+    C --> C2[Unit Monitoring]
+    C --> C3[Allocation]
+    C --> C4[Reports]
+
+    D --> D1[Unit Budget]
+    D --> D2[My Plans]
+    D --> D3[Realizations]
+
+    E --> E1[Approval Inbox]
+    E --> E2[Aging]
+    E --> E3[History]
+
+    F --> F1[Executive KPIs]
+    F --> F2[Unit Comparison]
+    F --> F3[Trend]
+
+    G --> G1[Audit]
+    G --> G2[History]
+    G --> G3[Reports]

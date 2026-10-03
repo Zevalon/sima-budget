@@ -1,0 +1,51 @@
+# Secrets / local environment
+.env
+.env.*
+!.env.example
+!**/.env.example
+
+# Python
+__pycache__/
+*.py[cod]
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.venv/
+venv/
+coverage.xml
+.coverage
+htmlcov/
+
+# Node
+node_modules/
+dist/
+.vite/
+coverage/
+playwright-report/
+test-results/
+
+# IDE / OS
+.vscode/*
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Runtime data
+runtime/
+uploads/
+*.log
+
+# Database / backups
+pgdata/
+*.dump
+*.sql.gz
+
+# Testing logs are runtime-generated; keep folder documentation only
+logs/testing/**
+!logs/testing/README.md
+!logs/testing/.gitkeep
+
+# Local generated OpenAPI scratch
+.open-api-tmp/

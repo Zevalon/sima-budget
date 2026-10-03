@@ -1,0 +1,1 @@
+"""SIMA backend application."""

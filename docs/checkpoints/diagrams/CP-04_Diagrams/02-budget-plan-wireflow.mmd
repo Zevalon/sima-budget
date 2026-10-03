@@ -1,0 +1,16 @@
+flowchart LR
+    A[Dashboard / Plans] --> B[Buat Rencana]
+    B --> C[1 Informasi Dasar]
+    C --> D[2 Rincian Anggaran]
+    D --> E[3 Attachment]
+    E --> F[4 Review]
+    F --> G{Action}
+    G -->|Save Draft| H[DRAFT]
+    G -->|Submit| I[SUBMITTED]
+    H --> B
+    I --> J[Approval Workflow]
+    J -->|Revision| K[REVISION_REQUIRED]
+    K --> B
+    J -->|Reject| L[REJECTED]
+    J -->|Approve| M[APPROVED]
+    M --> N[Execution / Realization]

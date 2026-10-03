@@ -1,0 +1,10 @@
+flowchart LR
+    REQ[HTTP Request] --> RID[Request/Trace ID]
+    RID --> AUTH[Authentication]
+    AUTH --> AUTHZ[Permission + Scope Authorization]
+    AUTHZ --> VAL[Schema Validation]
+    VAL --> USE[Application Use Case]
+    USE --> TX[DB Transaction / Repository]
+    TX --> AUD[Audit + Notification as required]
+    AUD --> DTO[Response DTO]
+    DTO --> RES[HTTP Response]

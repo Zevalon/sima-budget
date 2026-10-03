@@ -1,0 +1,24 @@
+flowchart TD
+    FY[Fiscal Year] --> AB[Annual Budget Draft]
+    AB --> ABS[Submit Annual Budget]
+    ABS --> ABA[Approval Workflow]
+    ABA -->|Approved| LOCK[Annual Budget Locked]
+    ABA -->|Revision Required| AB
+    LOCK --> ALLOC[Allocate Budget to Eligible Units]
+    ALLOC --> PLAN[Create Budget Plan]
+    PLAN --> ITEMS[Add Budget Plan Items]
+    ITEMS --> PS[Submit Plan Version]
+    PS --> PA[Plan Approval Workflow]
+    PA -->|Revision Required| PLAN
+    PA -->|Rejected| REJ[Rejected]
+    PA -->|Approved| COMMIT[Commit Unit Budget]
+    COMMIT --> REAL[Create Realization]
+    REAL --> RS[Submit Realization]
+    RS --> RV[Finance Verification]
+    RV -->|Verified| MON[Monitoring & Dashboard]
+    RV -->|Rejected| REAL
+    MON --> REPORT[Reports]
+    COMMIT --> PREV[Controlled Plan Revision]
+    PREV --> PA
+    ALLOC --> AADJ[Allocation Adjustment]
+    AADJ --> ALLOC

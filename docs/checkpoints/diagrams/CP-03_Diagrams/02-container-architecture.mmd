@@ -1,0 +1,13 @@
+flowchart TB
+    B[Browser]
+    RP[Reverse Proxy / TLS]
+    FE[React + TypeScript SPA]
+    BE[FastAPI Modular Monolith]
+    DB[(PostgreSQL)]
+    STORE[(Private Object/File Storage)]
+
+    B -->|HTTPS| RP
+    RP -->|Static assets| FE
+    RP -->|/api/v1/*| BE
+    BE --> DB
+    BE --> STORE

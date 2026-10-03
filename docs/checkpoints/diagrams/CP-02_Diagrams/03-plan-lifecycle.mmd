@@ -1,0 +1,13 @@
+stateDiagram-v2
+    [*] --> DraftV1
+    DraftV1 --> SubmittedV1
+    SubmittedV1 --> ApprovedV1
+    SubmittedV1 --> RevisionRequiredV1
+    SubmittedV1 --> RejectedV1
+    RevisionRequiredV1 --> DraftV1
+    ApprovedV1 --> DraftV2: Create controlled revision
+    DraftV2 --> SubmittedV2
+    SubmittedV2 --> ApprovedV2
+    SubmittedV2 --> RevisionRequiredV2
+    SubmittedV2 --> RejectedV2
+    RevisionRequiredV2 --> DraftV2

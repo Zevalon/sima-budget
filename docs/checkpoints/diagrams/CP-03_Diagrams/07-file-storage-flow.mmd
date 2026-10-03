@@ -1,0 +1,20 @@
+sequenceDiagram
+    participant U as User
+    participant A as API
+    participant S as Storage Adapter
+    participant D as PostgreSQL
+
+    U->>A: Upload attachment
+    A->>A: Validate permission/type/size
+    A->>S: Store private object
+    S-->>A: storage_key/checksum
+    A->>D: Save file_assets + association
+    D-->>A: File metadata
+    A-->>U: Attachment metadata
+
+    U->>A: Download attachment
+    A->>D: Check entity + permission
+    D-->>A: Authorized storage reference
+    A->>S: Read/stream private object
+    S-->>A: File stream
+    A-->>U: Authorized download

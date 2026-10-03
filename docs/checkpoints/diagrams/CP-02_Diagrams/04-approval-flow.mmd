@@ -1,0 +1,12 @@
+flowchart TD
+    SUB[Submit Target/Version] --> INST[Create Approval Instance]
+    INST --> STEP[Activate Current Step]
+    STEP --> ACT{Approver Action}
+    ACT -->|Approve| MORE{More Steps?}
+    ACT -->|Request Revision| REV[Return to Author]
+    ACT -->|Reject| REJ[Mark Submission Rejected]
+    MORE -->|Yes| NEXT[Activate Next Step]
+    NEXT --> STEP
+    MORE -->|No| FINALCHECK[Run Final Business Validation]
+    FINALCHECK -->|Valid| FINAL[Final Approved]
+    FINALCHECK -->|Invalid| BLOCK[Block Approval & Return Validation Error]

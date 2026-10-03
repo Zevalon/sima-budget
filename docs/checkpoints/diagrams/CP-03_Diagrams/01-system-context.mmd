@@ -1,0 +1,8 @@
+flowchart LR
+    U[Internal University Users] -->|HTTPS| WEB[SIMA Web Application]
+    WEB --> API[FastAPI Backend]
+    API --> DB[(PostgreSQL)]
+    API --> FS[(Private File Storage)]
+    API --> AUDIT[(Audit Log)]
+    API -. future integration .-> FIN[Existing Finance System]
+    API -. future integration .-> MAIL[Email Service]

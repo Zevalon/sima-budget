@@ -1,0 +1,25 @@
+name: API Contract CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/backend/**"
+      - "docs/api/**"
+      - ".github/workflows/contract-ci.yml"
+
+jobs:
+  openapi:
+    runs-on: ubuntu-latest
+    defaults:
+      run:
+        working-directory: apps/backend
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+      - name: Install dependencies
+        run: if [ -f uv.lock ]; then uv sync --frozen; else uv sync; fi
+      - run: uv run python scripts/export_openapi.py ../../../.open-api-tmp/openapi.json
+      - name: Ensure OpenAPI generation succeeded
+        run: test -s ../../../.open-api-tmp/openapi.json

@@ -1,0 +1,17 @@
+sequenceDiagram
+    participant C as Client
+    participant R as API Router
+    participant S as Application Service
+    participant D as PostgreSQL
+
+    C->>R: POST workflow command
+    R->>S: Validated command
+    S->>D: BEGIN transaction
+    S->>D: Lock/check relevant financial rows
+    S->>D: Apply state transition
+    S->>D: Write approval/financial record
+    S->>D: Write audit log
+    S->>D: Create notification records
+    S->>D: COMMIT
+    S-->>R: Result DTO
+    R-->>C: 2xx response

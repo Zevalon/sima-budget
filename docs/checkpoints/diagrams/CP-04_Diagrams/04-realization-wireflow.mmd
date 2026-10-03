@@ -1,0 +1,14 @@
+flowchart TD
+    A[Approved Plan] --> B[Add Realization]
+    B --> C[Transaction Data]
+    C --> D[Attachment]
+    D --> E[Review Amount vs Remaining]
+    E --> F{Valid?}
+    F -->|No| G[Show Error]
+    G --> C
+    F -->|Yes| H[Save Draft / Submit]
+    H --> I[SUBMITTED]
+    I --> J{Verification}
+    J -->|Verify| K[VERIFIED]
+    J -->|Reject| L[REJECTED]
+    K --> M[Update Realized / Execution Status]

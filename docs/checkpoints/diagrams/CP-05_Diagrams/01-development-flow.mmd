@@ -1,0 +1,11 @@
+flowchart LR
+    A[Requirement / Issue] --> B[Feature Branch]
+    B --> C[Implementation]
+    C --> D[Local Tests]
+    D --> E[Pull Request]
+    E --> F[CI]
+    F -->|Fail| C
+    F -->|Pass| G[Review]
+    G -->|Changes| C
+    G -->|Approve| H[Merge to main]
+    H --> I[Staging / Release Candidate]

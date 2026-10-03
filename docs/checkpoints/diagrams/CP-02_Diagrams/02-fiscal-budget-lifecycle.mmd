@@ -1,0 +1,8 @@
+stateDiagram-v2
+    [*] --> DRAFT
+    DRAFT --> PLANNING
+    PLANNING --> ACTIVE
+    ACTIVE --> CLOSED
+    CLOSED --> ACTIVE: Reopen with permission + reason
+    CLOSED --> ARCHIVED
+    ARCHIVED --> [*]

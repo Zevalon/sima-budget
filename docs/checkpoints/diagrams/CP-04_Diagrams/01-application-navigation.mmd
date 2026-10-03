@@ -1,0 +1,36 @@
+flowchart TD
+    Login[Login] --> Dashboard[Role-aware Dashboard]
+    Dashboard --> Budget[Anggaran]
+    Dashboard --> Plans[Rencana Anggaran]
+    Dashboard --> Realization[Realisasi]
+    Dashboard --> Approval[Approval]
+    Dashboard --> Reports[Laporan]
+    Dashboard --> Master[Master Data]
+    Dashboard --> Admin[Administration]
+
+    Budget --> FY[Tahun Anggaran]
+    Budget --> AB[Anggaran Tahunan]
+    Budget --> AL[Alokasi Unit]
+    Budget --> BR[Revisi Anggaran]
+
+    Plans --> PL[List Rencana]
+    Plans --> PN[Buat Rencana]
+    PL --> PD[Detail Rencana]
+
+    Realization --> RL[List Realisasi]
+    Realization --> RN[Input Realisasi]
+
+    Approval --> AI[Inbox]
+    Approval --> AS[Pengajuan Saya]
+    Approval --> AH[Riwayat]
+
+    Reports --> RC[Report Center]
+    Master --> OU[Unit Organisasi]
+    Master --> BC[Kategori]
+    Master --> UOM[Satuan]
+
+    Admin --> Users[Users]
+    Admin --> Roles[Roles & Permissions]
+    Admin --> WF[Approval Workflow]
+    Admin --> Settings[Settings]
+    Admin --> Audit[Audit Log]

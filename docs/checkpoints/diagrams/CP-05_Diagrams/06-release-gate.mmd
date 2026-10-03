@@ -1,0 +1,12 @@
+flowchart TD
+    A[Feature Complete] --> B[Regression]
+    B --> C[Financial Concurrency Tests]
+    C --> D[Security Review]
+    D --> E[Report Reconciliation]
+    E --> F[Staging Smoke]
+    F --> G[Backup / Restore Test]
+    G --> H[UAT]
+    H --> I{Blocking Defects?}
+    I -->|Yes| J[Fix and Repeat]
+    J --> B
+    I -->|No| K[Release Candidate]

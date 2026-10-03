@@ -1,0 +1,15 @@
+flowchart TB
+    API[API Routers]
+    APP[Application Services / Use Cases]
+    POL[Domain Policies & Business Rules]
+    REP[Repositories]
+    ORM[SQLAlchemy Models]
+    DB[(PostgreSQL)]
+    INF[Infrastructure Adapters\nStorage / Notification / Auth]
+
+    API --> APP
+    APP --> POL
+    APP --> REP
+    APP --> INF
+    REP --> ORM
+    ORM --> DB

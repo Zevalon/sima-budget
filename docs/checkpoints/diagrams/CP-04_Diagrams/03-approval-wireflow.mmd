@@ -1,0 +1,14 @@
+flowchart TD
+    A[Approval Inbox] --> B[Open Submission]
+    B --> C[Review Summary]
+    C --> D[Review Budget Position]
+    D --> E[Review Items]
+    E --> F[Review Attachments]
+    F --> G[Review Previous Decisions]
+    G --> H{Decision}
+    H -->|Approve| I[Confirmation]
+    I --> J[APPROVED / Next Step]
+    H -->|Request Revision| K[Reason Required]
+    K --> L[REVISION_REQUIRED]
+    H -->|Reject| M[Reason Required]
+    M --> N[REJECTED]

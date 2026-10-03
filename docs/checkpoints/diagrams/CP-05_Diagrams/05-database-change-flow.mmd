@@ -1,0 +1,8 @@
+flowchart LR
+    A[Model Change] --> B[Create Alembic Migration]
+    B --> C[Review SQL / Constraints]
+    C --> D[Test Clean Upgrade]
+    D --> E[Integration Tests]
+    E --> F[Pull Request]
+    F --> G[Staging Migration]
+    G --> H[Production Migration Plan]

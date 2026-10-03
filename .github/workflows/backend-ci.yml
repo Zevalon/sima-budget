@@ -1,0 +1,49 @@
+name: Backend CI
+
+on:
+  pull_request:
+    paths:
+      - "apps/backend/**"
+      - ".github/workflows/backend-ci.yml"
+  push:
+    branches: [main]
+    paths:
+      - "apps/backend/**"
+
+jobs:
+  backend:
+    runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:18-alpine
+        env:
+          POSTGRES_DB: sima_test
+          POSTGRES_USER: sima
+          POSTGRES_PASSWORD: sima_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U sima -d sima_test"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+    defaults:
+      run:
+        working-directory: apps/backend
+    env:
+      APP_ENV: test
+      DATABASE_URL: postgresql+psycopg://sima:sima_test@localhost:5432/sima_test
+      SESSION_SECRET: ci-only-session-secret-change-not-production
+      CSRF_SECRET: ci-only-csrf-secret-change-not-production
+    steps:
+      - uses: actions/checkout@v4
+      - uses: astral-sh/setup-uv@v6
+        with:
+          python-version: "3.14"
+      - name: Install dependencies
+        run: if [ -f uv.lock ]; then uv sync --frozen; else uv sync; fi
+      - run: uv run ruff check .
+      - run: uv run ruff format --check .
+      - run: uv run mypy app tests
+      - run: uv run alembic upgrade head
+      - run: uv run pytest

@@ -1,0 +1,5 @@
+flowchart TB
+    U[Unit Tests] --> I[Integration Tests]
+    I --> A[API / Component Tests]
+    A --> E[E2E Critical Paths]
+    E --> M[Manual UAT / Release Smoke]

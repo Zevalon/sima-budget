@@ -1,0 +1,26 @@
+sequenceDiagram
+    participant P as Unit PIC
+    participant A as API
+    participant D as PostgreSQL
+    participant X as Approver
+
+    P->>A: Submit plan version
+    A->>D: Validate draft + create approval instance
+    A-->>P: Submitted
+    X->>A: Approve current step
+    A->>D: Validate permission/scope/self-approval policy
+    A->>D: Record append-only approval action
+    alt Final approval step
+        A->>D: Lock unit allocation row
+        A->>D: Recalculate committed + proposed amount
+        alt Budget sufficient
+            A->>D: Mark version approved + update committed state + audit
+            A-->>X: Approved
+        else Budget insufficient
+            A->>D: Roll back finalization
+            A-->>X: 409 budget conflict
+        end
+    else More approval steps
+        A->>D: Activate next step
+        A-->>X: Step approved
+    end

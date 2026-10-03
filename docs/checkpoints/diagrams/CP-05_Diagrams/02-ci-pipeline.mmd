@@ -1,0 +1,12 @@
+flowchart TD
+    PR[Pull Request] --> B[Backend CI]
+    PR --> F[Frontend CI]
+    PR --> C[Contract CI]
+    PR --> S[Security CI]
+    B --> E2E[E2E CI]
+    F --> E2E
+    C --> E2E
+    E2E --> Gate{All Required Checks Pass?}
+    S --> Gate
+    Gate -->|Yes| Merge[Merge Allowed]
+    Gate -->|No| Block[Merge Blocked]

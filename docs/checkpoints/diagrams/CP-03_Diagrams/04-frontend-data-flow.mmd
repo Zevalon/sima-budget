@@ -1,0 +1,15 @@
+flowchart LR
+    UI[Page / Feature UI]
+    FORM[React Hook Form + Zod]
+    QUERY[TanStack Query]
+    CLIENT[Generated/Typed API Client]
+    API[FastAPI /api/v1]
+    AUTH[Auth Session State]
+
+    UI --> FORM
+    UI --> QUERY
+    FORM --> QUERY
+    QUERY --> CLIENT
+    CLIENT --> API
+    AUTH --> UI
+    API --> AUTH

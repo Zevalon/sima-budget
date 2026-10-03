@@ -1,0 +1,11 @@
+stateDiagram-v2
+    [*] --> Loading
+    Loading --> Ready: success
+    Loading --> Error: request failed
+    Ready --> Empty: no records
+    Ready --> Populated: records exist
+    Empty --> Populated: create/import
+    Populated --> Loading: refresh/filter/page
+    Error --> Loading: retry
+    Populated --> Conflict: stale version
+    Conflict --> Loading: reload

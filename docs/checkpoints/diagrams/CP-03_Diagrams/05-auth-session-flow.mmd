@@ -1,0 +1,16 @@
+sequenceDiagram
+    participant U as User
+    participant B as Browser
+    participant A as FastAPI
+    participant D as PostgreSQL
+
+    U->>B: Enter username/password
+    B->>A: POST /api/v1/auth/login
+    A->>D: Validate user + password hash
+    D-->>A: User record
+    A->>D: Create hashed opaque session
+    A-->>B: Set HttpOnly Secure session cookie + CSRF token
+    B->>A: Authenticated request + CSRF for mutation
+    A->>D: Validate active session + permissions
+    D-->>A: Session/user context
+    A-->>B: Response
