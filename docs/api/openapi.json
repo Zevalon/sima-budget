@@ -151,6 +151,106 @@
         }
       }
     },
+    "/api/v1/admin/users": {
+      "get": {
+        "tags": [
+          "administration"
+        ],
+        "summary": "Users Endpoint",
+        "operationId": "users_endpoint_api_v1_admin_users_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminUserSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Users Endpoint Api V1 Admin Users Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/roles": {
+      "get": {
+        "tags": [
+          "administration"
+        ],
+        "summary": "Roles Endpoint",
+        "operationId": "roles_endpoint_api_v1_admin_roles_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminRoleSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Roles Endpoint Api V1 Admin Roles Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/permissions": {
+      "get": {
+        "tags": [
+          "administration"
+        ],
+        "summary": "Permissions Endpoint",
+        "operationId": "permissions_endpoint_api_v1_admin_permissions_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminPermissionSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Permissions Endpoint Api V1 Admin Permissions Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/admin/organization-units": {
+      "get": {
+        "tags": [
+          "administration"
+        ],
+        "summary": "Organization Units Endpoint",
+        "operationId": "organization_units_endpoint_api_v1_admin_organization_units_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AdminOrganizationUnitSummary"
+                  },
+                  "type": "array",
+                  "title": "Response Organization Units Endpoint Api V1 Admin Organization Units Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "tags": [
@@ -179,6 +279,214 @@
   },
   "components": {
     "schemas": {
+      "AdminOrganizationUnitSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "parent_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Parent Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "unit_type_code": {
+            "type": "string",
+            "title": "Unit Type Code"
+          },
+          "unit_type_name": {
+            "type": "string",
+            "title": "Unit Type Name"
+          },
+          "can_receive_budget": {
+            "type": "boolean",
+            "title": "Can Receive Budget"
+          },
+          "can_create_budget_plan": {
+            "type": "boolean",
+            "title": "Can Create Budget Plan"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "parent_id",
+          "code",
+          "name",
+          "unit_type_code",
+          "unit_type_name",
+          "can_receive_budget",
+          "can_create_budget_plan",
+          "is_active"
+        ],
+        "title": "AdminOrganizationUnitSummary"
+      },
+      "AdminPermissionSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "module": {
+            "type": "string",
+            "title": "Module"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "module",
+          "description"
+        ],
+        "title": "AdminPermissionSummary"
+      },
+      "AdminRoleSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "is_system_role": {
+            "type": "boolean",
+            "title": "Is System Role"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name",
+          "description",
+          "is_system_role",
+          "is_active"
+        ],
+        "title": "AdminRoleSummary"
+      },
+      "AdminUserSummary": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "username": {
+            "type": "string",
+            "title": "Username"
+          },
+          "email": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Email"
+          },
+          "full_name": {
+            "type": "string",
+            "title": "Full Name"
+          },
+          "is_active": {
+            "type": "boolean",
+            "title": "Is Active"
+          },
+          "is_locked": {
+            "type": "boolean",
+            "title": "Is Locked"
+          },
+          "last_login_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Last Login At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "username",
+          "email",
+          "full_name",
+          "is_active",
+          "is_locked",
+          "last_login_at"
+        ],
+        "title": "AdminUserSummary"
+      },
       "CurrentUserResponse": {
         "properties": {
           "id": {
