@@ -1,0 +1,77 @@
+FOUNDATION_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("settings.view", "Lihat Pengaturan Aplikasi", "settings"),
+    ("settings.update", "Ubah Pengaturan Aplikasi", "settings"),
+    ("users.view", "Lihat Pengguna", "users"),
+    ("users.create", "Buat Pengguna", "users"),
+    ("users.update", "Ubah Pengguna", "users"),
+    ("users.deactivate", "Nonaktifkan Pengguna", "users"),
+    ("roles.view", "Lihat Role", "roles"),
+    ("roles.create", "Buat Role", "roles"),
+    ("roles.update", "Ubah Role", "roles"),
+    ("roles.assign", "Tetapkan Role", "roles"),
+    ("permissions.view", "Lihat Permission", "roles"),
+    ("organization_units.view", "Lihat Unit Organisasi", "organizations"),
+    ("organization_units.create", "Buat Unit Organisasi", "organizations"),
+    ("organization_units.update", "Ubah Unit Organisasi", "organizations"),
+    ("organization_units.deactivate", "Nonaktifkan Unit Organisasi", "organizations"),
+    ("audit.view", "Lihat Audit Log", "audit"),
+    ("sessions.revoke", "Cabut Session Pengguna", "auth"),
+)
+
+DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
+    (
+        "SYSTEM_ADMIN",
+        "System Administrator",
+        "Mengelola konfigurasi sistem, pengguna, role, permission, dan struktur organisasi.",
+        tuple(code for code, _, _ in FOUNDATION_PERMISSIONS),
+    ),
+    (
+        "BUDGET_ADMIN",
+        "Budget Administrator",
+        "Template role untuk administrator anggaran. Permission anggaran ditambahkan pada Phase 2.",
+        (
+            "settings.view",
+            "organization_units.view",
+            "users.view",
+            "roles.view",
+            "permissions.view",
+        ),
+    ),
+    (
+        "UNIT_PIC",
+        "Unit PIC",
+        "Template user operasional unit. Permission rencana anggaran ditambahkan pada Phase 3.",
+        ("settings.view", "organization_units.view"),
+    ),
+    (
+        "UNIT_APPROVER",
+        "Unit Approver",
+        "Template approver unit. Permission approval ditambahkan pada Phase 4.",
+        ("settings.view", "organization_units.view"),
+    ),
+    (
+        "MANAGEMENT_APPROVER",
+        "Management Approver",
+        "Template pimpinan/approver tingkat manajemen.",
+        ("settings.view", "organization_units.view"),
+    ),
+    (
+        "AUDITOR",
+        "Auditor",
+        "Akses pemeriksaan read-only terhadap struktur, user, dan audit.",
+        (
+            "settings.view",
+            "users.view",
+            "roles.view",
+            "permissions.view",
+            "organization_units.view",
+            "audit.view",
+        ),
+    ),
+    (
+        "VIEWER",
+        "Viewer",
+        "Akses baca terbatas.",
+        ("settings.view", "organization_units.view"),
+    ),
+)

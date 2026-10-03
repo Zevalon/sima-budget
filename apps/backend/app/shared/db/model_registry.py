@@ -1,0 +1,26 @@
+from app.modules.audit.models import AuditLog
+from app.modules.auth.models import UserSession
+from app.modules.organizations.models import (
+    Organization,
+    OrganizationUnit,
+    OrganizationUnitType,
+    UserUnitMembership,
+)
+from app.modules.roles.models import Permission, Role, RolePermission, UserRoleAssignment
+from app.modules.settings.models import ApplicationSetting
+from app.modules.users.models import User
+
+MODELS = (
+    Organization,
+    ApplicationSetting,
+    OrganizationUnitType,
+    OrganizationUnit,
+    User,
+    UserUnitMembership,
+    Role,
+    Permission,
+    RolePermission,
+    UserRoleAssignment,
+    UserSession,
+    AuditLog,
+)
