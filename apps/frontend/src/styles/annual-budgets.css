@@ -65,3 +65,20 @@
     grid-column: auto;
   }
 }
+
+.rejection-alert {
+  display: grid;
+  gap: 4px;
+  padding: 14px 16px;
+  border: 1px solid #fecdca;
+  border-radius: 10px;
+  background: #fef3f2;
+  color: #b42318;
+}
+
+.approval-actions {
+  display: flex;
+  gap: 8px;
+  justify-content: flex-end;
+  min-width: 180px;
+}

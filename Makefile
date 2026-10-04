@@ -24,6 +24,7 @@ help:
 	@echo "  make phase1d2-check         Run Phase 1D1 regression + final hardening checks"
 	@echo "  make phase2a-check          Run Phase 1 regression + fiscal/master foundation checks"
 	@echo "  make phase2b1-check         Run Phase 2A regression + annual budget core checks"
+	@echo "  make phase2b2-check         Run Phase 2B1 regression + annual budget approval checks"
 
 bootstrap:
 	./scripts/bootstrap-dev.sh
@@ -97,3 +98,7 @@ phase2a-check:
 
 phase2b1-check:
 	./scripts/check-phase2b1.sh
+
+
+phase2b2-check:
+	./scripts/check-phase2b2.sh

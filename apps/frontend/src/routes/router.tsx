@@ -5,6 +5,7 @@ import { OrganizationUnitsPage } from "../features/administration/pages/Organiza
 import { RolesPage } from "../features/administration/pages/RolesPage";
 import { UsersPage } from "../features/administration/pages/UsersPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
+import { AnnualBudgetApprovalPage } from "../features/annual-budgets/pages/AnnualBudgetApprovalPage";
 import { AnnualBudgetsPage } from "../features/annual-budgets/pages/AnnualBudgetsPage";
 import { PermissionRoute } from "../features/auth/PermissionRoute";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute";
@@ -44,6 +45,15 @@ export const router = createBrowserRouter([
               {
                 path: "annual-budgets",
                 element: <AnnualBudgetsPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["annual_budgets.approve"]} />,
+            children: [
+              {
+                path: "approvals/annual-budgets",
+                element: <AnnualBudgetApprovalPage />,
               },
             ],
           },

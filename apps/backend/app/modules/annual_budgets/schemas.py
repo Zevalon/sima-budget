@@ -47,6 +47,14 @@ class AnnualBudgetUpdateRequest(BaseModel):
     notes: str | None = Field(default=None, max_length=2000)
 
 
+class AnnualBudgetApproveRequest(BaseModel):
+    decision_note: str | None = Field(default=None, max_length=2000)
+
+
+class AnnualBudgetRejectRequest(BaseModel):
+    reason: str = Field(min_length=3, max_length=2000)
+
+
 class AnnualBudgetApprovalResponse(BaseModel):
     id: UUID
     annual_budget_id: UUID

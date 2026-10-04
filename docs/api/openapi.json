@@ -2016,6 +2016,31 @@
         }
       }
     },
+    "/api/v1/annual-budget-approvals/pending": {
+      "get": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Pending Annual Budget Approvals Endpoint",
+        "operationId": "pending_annual_budget_approvals_endpoint_api_v1_annual_budget_approvals_pending_get",
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "items": {
+                    "$ref": "#/components/schemas/AnnualBudgetResponse"
+                  },
+                  "type": "array",
+                  "title": "Response Pending Annual Budget Approvals Endpoint Api V1 Annual Budget Approvals Pending Get"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/annual-budgets/{annual_budget_id}": {
       "get": {
         "tags": [
@@ -2161,6 +2186,144 @@
             }
           }
         ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnualBudgetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annual-budgets/{annual_budget_id}/approve": {
+      "post": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Approve Annual Budget Endpoint",
+        "operationId": "approve_annual_budget_endpoint_api_v1_annual_budgets__annual_budget_id__approve_post",
+        "parameters": [
+          {
+            "name": "annual_budget_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Annual Budget Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnualBudgetApproveRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnualBudgetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annual-budgets/{annual_budget_id}/reject": {
+      "post": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Reject Annual Budget Endpoint",
+        "operationId": "reject_annual_budget_endpoint_api_v1_annual_budgets__annual_budget_id__reject_post",
+        "parameters": [
+          {
+            "name": "annual_budget_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Annual Budget Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnualBudgetRejectRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -2766,6 +2929,24 @@
         ],
         "title": "AnnualBudgetApprovalStatus"
       },
+      "AnnualBudgetApproveRequest": {
+        "properties": {
+          "decision_note": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Note"
+          }
+        },
+        "type": "object",
+        "title": "AnnualBudgetApproveRequest"
+      },
       "AnnualBudgetCreateRequest": {
         "properties": {
           "fiscal_year_id": {
@@ -2805,6 +2986,21 @@
           "amount"
         ],
         "title": "AnnualBudgetCreateRequest"
+      },
+      "AnnualBudgetRejectRequest": {
+        "properties": {
+          "reason": {
+            "type": "string",
+            "maxLength": 2000,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "reason"
+        ],
+        "title": "AnnualBudgetRejectRequest"
       },
       "AnnualBudgetResponse": {
         "properties": {
