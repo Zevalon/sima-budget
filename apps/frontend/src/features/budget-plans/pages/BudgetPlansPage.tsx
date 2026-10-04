@@ -304,8 +304,8 @@ export function BudgetPlansPage() {
                   </option>
                   {activeContext.allocations.map((item) => (
                     <option value={item.unit_allocation_id} key={item.unit_allocation_id}>
-                      {item.organization_unit_code} · {item.organization_unit_name} ·{" "}
-                      {formatCurrency(item.allocation_amount)}
+                      {item.organization_unit_code} · {item.organization_unit_name} · tersedia{" "}
+                      {formatCurrency(item.available_amount)}
                     </option>
                   ))}
                 </select>
@@ -466,7 +466,12 @@ export function BudgetPlansPage() {
                       </span>
                       <strong>{formatCurrency(plan.total_amount)}</strong>
                       <span className="muted">
-                        Alokasi {formatCurrency(plan.allocation_amount)}
+                        Alokasi {formatCurrency(plan.allocation_amount)} · Committed{" "}
+                        {formatCurrency(plan.allocation_committed_amount)}
+                      </span>
+                      <span className="muted">
+                        Available {formatCurrency(plan.allocation_available_amount)} · Pipeline{" "}
+                        {formatCurrency(plan.allocation_draft_pipeline_amount)}
                       </span>
                     </div>
                   </div>

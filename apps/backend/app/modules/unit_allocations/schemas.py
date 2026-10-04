@@ -16,6 +16,9 @@ class UnitAllocationResponse(BaseModel):
     organization_unit_code: str
     organization_unit_name: str
     amount: Decimal
+    committed_amount: Decimal
+    draft_pipeline_amount: Decimal
+    available_amount: Decimal
     notes: str | None
     version: int
     created_at: datetime
@@ -44,4 +47,7 @@ class UnitAllocationOverviewResponse(BaseModel):
     annual_budget_amount: Decimal
     allocated_amount: Decimal
     remaining_amount: Decimal
+    committed_amount: Decimal
+    draft_pipeline_amount: Decimal
+    available_amount: Decimal
     allocations: list[UnitAllocationResponse]

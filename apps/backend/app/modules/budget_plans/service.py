@@ -3,7 +3,7 @@ from decimal import ROUND_HALF_UP, Decimal
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, func, select
+from sqlalchemy import and_, delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.audit.service import record_audit
@@ -59,6 +59,48 @@ def normalize_money(value: Decimal) -> Decimal:
 
 def item_amount(item: BudgetPlanItemRequest) -> Decimal:
     return normalize_money(item.quantity * item.unit_price)
+
+
+async def _allocation_plan_total(
+    session: AsyncSession,
+    *,
+    allocation_id: UUID,
+    statuses: tuple[str, ...],
+) -> Decimal:
+    value = await session.scalar(
+        select(func.sum(BudgetPlanVersion.total_amount))
+        .join(
+            BudgetPlan,
+            and_(
+                BudgetPlan.id == BudgetPlanVersion.budget_plan_id,
+                BudgetPlan.current_version_no == BudgetPlanVersion.version_no,
+            ),
+        )
+        .where(
+            BudgetPlan.unit_allocation_id == allocation_id,
+            BudgetPlan.status.in_(statuses),
+        )
+    )
+    return normalize_money(value if value is not None else Decimal("0.00"))
+
+
+async def _allocation_financials(
+    session: AsyncSession,
+    *,
+    allocation: UnitAllocation,
+) -> tuple[Decimal, Decimal, Decimal]:
+    committed = await _allocation_plan_total(
+        session,
+        allocation_id=allocation.id,
+        statuses=(BudgetPlanStatus.APPROVED.value,),
+    )
+    pipeline = await _allocation_plan_total(
+        session,
+        allocation_id=allocation.id,
+        statuses=(BudgetPlanStatus.DRAFT.value, BudgetPlanStatus.PENDING_APPROVAL.value),
+    )
+    available = normalize_money(max(allocation.amount - committed, Decimal("0.00")))
+    return committed, pipeline, available
 
 
 async def _fiscal_year(
@@ -204,6 +246,10 @@ async def _response(session: AsyncSession, plan: BudgetPlan) -> BudgetPlanRespon
             .order_by(BudgetPlanItem.line_no.asc())
         )
     ).all()
+    committed, pipeline, available = await _allocation_financials(
+        session,
+        allocation=allocation,
+    )
 
     return BudgetPlanResponse(
         id=plan.id,
@@ -214,6 +260,9 @@ async def _response(session: AsyncSession, plan: BudgetPlan) -> BudgetPlanRespon
         organization_unit_code=unit.code,
         organization_unit_name=unit.name,
         allocation_amount=allocation.amount,
+        allocation_committed_amount=committed,
+        allocation_draft_pipeline_amount=pipeline,
+        allocation_available_amount=available,
         plan_number=plan.plan_number,
         status=BudgetPlanStatus(plan.status),
         current_version_no=plan.current_version_no,
@@ -280,6 +329,10 @@ async def get_budget_plan_context(
             permission_code="budget_plans.view",
             unit_id=unit.id,
         ):
+            committed, pipeline, available = await _allocation_financials(
+                session,
+                allocation=allocation,
+            )
             allocations.append(
                 BudgetPlanAllocationOption(
                     unit_allocation_id=allocation.id,
@@ -287,6 +340,9 @@ async def get_budget_plan_context(
                     organization_unit_code=unit.code,
                     organization_unit_name=unit.name,
                     allocation_amount=allocation.amount,
+                    committed_amount=committed,
+                    draft_pipeline_amount=pipeline,
+                    available_amount=available,
                 )
             )
 
@@ -768,6 +824,21 @@ async def approve_budget_plan(
         plan_id=plan_id,
         actor_user_id=actor_user_id,
     )
+    allocation, _ = await _allocation_with_unit(
+        session,
+        organization_id=organization.id,
+        allocation_id=plan.unit_allocation_id,
+        lock=True,
+    )
+    committed_before = await _allocation_plan_total(
+        session,
+        allocation_id=allocation.id,
+        statuses=(BudgetPlanStatus.APPROVED.value,),
+    )
+    committed_after = normalize_money(committed_before + version.total_amount)
+    if committed_after > allocation.amount:
+        raise conflict("Rencana tidak dapat disetujui karena saldo alokasi unit tidak mencukupi.")
+    available_after = normalize_money(allocation.amount - committed_after)
     now = datetime.now(UTC)
     note = payload.decision_note.strip() if payload.decision_note else None
 
@@ -795,6 +866,9 @@ async def approve_budget_plan(
             "submission_no": approval.submission_no,
             "version_no": version.version_no,
             "total_amount": str(version.total_amount),
+            "committed_before": str(committed_before),
+            "committed_after": str(committed_after),
+            "available_after": str(available_after),
             "decision_note": note,
         },
     )

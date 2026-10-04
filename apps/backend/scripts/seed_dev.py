@@ -586,6 +586,32 @@ async def apply_seed() -> None:
                 None,
             ),
             (
+                "DEV-FY2026-IT-APPROVED-001",
+                "IT",
+                "itpic",
+                "APPROVED",
+                "Operasional Platform Digital",
+                "Baseline commitment APPROVED untuk pengujian saldo tersedia Phase 3C.",
+                (
+                    (
+                        "IT",
+                        "MONTH",
+                        "Operasional layanan cloud",
+                        Decimal("12"),
+                        Decimal("1500000000.00"),
+                    ),
+                    (
+                        "OPEX",
+                        "UNIT",
+                        "Perpanjangan dukungan perangkat inti",
+                        Decimal("12"),
+                        Decimal("1000000000.00"),
+                    ),
+                ),
+                "itapprover",
+                "Disetujui sebagai commitment baseline FY2026.",
+            ),
+            (
                 "DEV-FY2026-FTI-001",
                 "FTI",
                 "ftipic",
@@ -628,6 +654,8 @@ async def apply_seed() -> None:
             decided_at = (
                 None if plan_status == "PENDING_APPROVAL" else submitted_at + timedelta(days=1)
             )
+            approved = plan_status == "APPROVED"
+            rejected = plan_status == "REJECTED"
             plan = BudgetPlan(
                 organization_id=organization.id,
                 fiscal_year_id=fiscal_years["FY2026"].id,
@@ -640,9 +668,9 @@ async def apply_seed() -> None:
                 created_by=users[username].id,
                 submitted_by=users[username].id,
                 submitted_at=submitted_at,
-                approved_by=None,
-                approved_at=None,
-                rejection_reason=rejection_reason,
+                approved_by=users[approver_username].id if approved else None,
+                approved_at=decided_at if approved else None,
+                rejection_reason=rejection_reason if rejected else None,
             )
             session.add(plan)
             await session.flush()
@@ -682,7 +710,11 @@ async def apply_seed() -> None:
                     )
                 )
 
-            approval_status = "PENDING" if plan_status == "PENDING_APPROVAL" else "REJECTED"
+            approval_status = {
+                "PENDING_APPROVAL": "PENDING",
+                "REJECTED": "REJECTED",
+                "APPROVED": "APPROVED",
+            }[plan_status]
             session.add(
                 BudgetPlanApproval(
                     organization_id=organization.id,
@@ -693,7 +725,9 @@ async def apply_seed() -> None:
                     requested_by=users[username].id,
                     requested_at=submitted_at,
                     decided_by=(
-                        users[approver_username].id if approval_status == "REJECTED" else None
+                        users[approver_username].id
+                        if approval_status in {"APPROVED", "REJECTED"}
+                        else None
                     ),
                     decided_at=decided_at,
                     decision_note=rejection_reason,
@@ -780,7 +814,10 @@ async def main() -> None:
     print("Login password seluruh akun seed:", password)
     print("Akun utama: sysadmin, budgetadmin, management, auditor, viewer")
     print("Akun unit: itpic, itapprover, ftipic, ftiapprover")
-    print("FY2026 = PLANNING + approved annual budget + allocations + plan approval scenarios.")
+    print(
+        "FY2026 = PLANNING + allocations + pending/rejected/approved plan "
+        "scenarios + commitment baseline."
+    )
 
 
 if __name__ == "__main__":

@@ -4479,6 +4479,21 @@
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Allocation Amount"
+          },
+          "committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Committed Amount"
+          },
+          "draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Draft Pipeline Amount"
+          },
+          "available_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Available Amount"
           }
         },
         "type": "object",
@@ -4487,7 +4502,10 @@
           "organization_unit_id",
           "organization_unit_code",
           "organization_unit_name",
-          "allocation_amount"
+          "allocation_amount",
+          "committed_amount",
+          "draft_pipeline_amount",
+          "available_amount"
         ],
         "title": "BudgetPlanAllocationOption"
       },
@@ -4957,6 +4975,21 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Allocation Amount"
           },
+          "allocation_committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocation Committed Amount"
+          },
+          "allocation_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocation Draft Pipeline Amount"
+          },
+          "allocation_available_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocation Available Amount"
+          },
           "plan_number": {
             "type": "string",
             "title": "Plan Number"
@@ -5084,6 +5117,9 @@
           "organization_unit_code",
           "organization_unit_name",
           "allocation_amount",
+          "allocation_committed_amount",
+          "allocation_draft_pipeline_amount",
+          "allocation_available_amount",
           "plan_number",
           "status",
           "current_version_no",
@@ -6074,6 +6110,21 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Remaining Amount"
           },
+          "committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Committed Amount"
+          },
+          "draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Draft Pipeline Amount"
+          },
+          "available_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Available Amount"
+          },
           "allocations": {
             "items": {
               "$ref": "#/components/schemas/UnitAllocationResponse"
@@ -6092,6 +6143,9 @@
           "annual_budget_amount",
           "allocated_amount",
           "remaining_amount",
+          "committed_amount",
+          "draft_pipeline_amount",
+          "available_amount",
           "allocations"
         ],
         "title": "UnitAllocationOverviewResponse"
@@ -6131,6 +6185,21 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Amount"
           },
+          "committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Committed Amount"
+          },
+          "draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Draft Pipeline Amount"
+          },
+          "available_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Available Amount"
+          },
           "notes": {
             "anyOf": [
               {
@@ -6166,6 +6235,9 @@
           "organization_unit_code",
           "organization_unit_name",
           "amount",
+          "committed_amount",
+          "draft_pipeline_amount",
+          "available_amount",
           "notes",
           "version",
           "created_at",

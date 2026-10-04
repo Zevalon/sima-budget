@@ -6,6 +6,9 @@ export type UnitAllocation = {
   organization_unit_code: string;
   organization_unit_name: string;
   amount: string;
+  committed_amount: string;
+  draft_pipeline_amount: string;
+  available_amount: string;
   notes: string | null;
   version: number;
   created_at: string;
@@ -21,5 +24,8 @@ export type UnitAllocationOverview = {
   annual_budget_amount: string;
   allocated_amount: string;
   remaining_amount: string;
+  committed_amount: string;
+  draft_pipeline_amount: string;
+  available_amount: string;
   allocations: UnitAllocation[];
 };

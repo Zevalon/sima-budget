@@ -1,8 +1,8 @@
-from decimal import Decimal
+from decimal import ROUND_HALF_UP, Decimal
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import func, select
+from sqlalchemy import and_, func, select
 from sqlalchemy.exc import IntegrityError
 from sqlalchemy.ext.asyncio import AsyncSession
 
@@ -12,6 +12,7 @@ from app.modules.audit.service import record_audit
 from app.modules.auth.repository import get_default_organization
 from app.modules.budget_foundation.models import FiscalYear
 from app.modules.budget_foundation.schemas import FiscalYearStatus
+from app.modules.budget_plans.models import BudgetPlan, BudgetPlanVersion
 from app.modules.organizations.models import OrganizationUnit
 from app.modules.unit_allocations.models import UnitAllocation
 from app.modules.unit_allocations.schemas import (
@@ -33,7 +34,7 @@ def conflict(detail: str) -> HTTPException:
 
 
 def normalize_amount(value: Decimal) -> Decimal:
-    return value.quantize(Decimal("0.01"))
+    return value.quantize(Decimal("0.01"), rounding=ROUND_HALF_UP)
 
 
 def allocation_response(
@@ -41,7 +42,10 @@ def allocation_response(
     *,
     unit_code: str,
     unit_name: str,
+    committed_amount: Decimal,
+    draft_pipeline_amount: Decimal,
 ) -> UnitAllocationResponse:
+    available_amount = normalize_amount(max(item.amount - committed_amount, ZERO))
     return UnitAllocationResponse(
         id=item.id,
         fiscal_year_id=item.fiscal_year_id,
@@ -50,11 +54,55 @@ def allocation_response(
         organization_unit_code=unit_code,
         organization_unit_name=unit_name,
         amount=item.amount,
+        committed_amount=committed_amount,
+        draft_pipeline_amount=draft_pipeline_amount,
+        available_amount=available_amount,
         notes=item.notes,
         version=item.version,
         created_at=item.created_at,
         updated_at=item.updated_at,
     )
+
+
+async def _plan_total_for_allocation(
+    session: AsyncSession,
+    *,
+    allocation_id: UUID,
+    statuses: tuple[str, ...],
+) -> Decimal:
+    value = await session.scalar(
+        select(func.sum(BudgetPlanVersion.total_amount))
+        .join(
+            BudgetPlan,
+            and_(
+                BudgetPlan.id == BudgetPlanVersion.budget_plan_id,
+                BudgetPlan.current_version_no == BudgetPlanVersion.version_no,
+            ),
+        )
+        .where(
+            BudgetPlan.unit_allocation_id == allocation_id,
+            BudgetPlan.status.in_(statuses),
+        )
+    )
+    return normalize_amount(value if value is not None else ZERO)
+
+
+async def _allocation_plan_totals(
+    session: AsyncSession,
+    *,
+    allocation_id: UUID,
+) -> tuple[Decimal, Decimal]:
+    committed = await _plan_total_for_allocation(
+        session,
+        allocation_id=allocation_id,
+        statuses=("APPROVED",),
+    )
+    pipeline = await _plan_total_for_allocation(
+        session,
+        allocation_id=allocation_id,
+        statuses=("DRAFT", "PENDING_APPROVAL"),
+    )
+    return committed, pipeline
 
 
 async def _fiscal_year(
@@ -163,11 +211,25 @@ async def get_unit_allocation_overview(
             .order_by(OrganizationUnit.name.asc())
         )
     ).all()
-    allocations = [
-        allocation_response(item, unit_code=unit_code, unit_name=unit_name)
-        for item, unit_code, unit_name in rows
-    ]
+    allocations: list[UnitAllocationResponse] = []
+    for item, unit_code, unit_name in rows:
+        committed, pipeline = await _allocation_plan_totals(
+            session,
+            allocation_id=item.id,
+        )
+        allocations.append(
+            allocation_response(
+                item,
+                unit_code=unit_code,
+                unit_name=unit_name,
+                committed_amount=committed,
+                draft_pipeline_amount=pipeline,
+            )
+        )
     allocated = normalize_amount(sum((item.amount for item in allocations), ZERO))
+    committed = normalize_amount(sum((item.committed_amount for item in allocations), ZERO))
+    pipeline = normalize_amount(sum((item.draft_pipeline_amount for item in allocations), ZERO))
+    available = normalize_amount(max(allocated - committed, ZERO))
     budget_amount = normalize_amount(annual_budget.amount) if annual_budget is not None else ZERO
     remaining = normalize_amount(max(budget_amount - allocated, ZERO))
 
@@ -182,6 +244,9 @@ async def get_unit_allocation_overview(
         annual_budget_amount=budget_amount,
         allocated_amount=allocated,
         remaining_amount=remaining,
+        committed_amount=committed,
+        draft_pipeline_amount=pipeline,
+        available_amount=available,
         allocations=allocations,
     )
 
@@ -261,7 +326,14 @@ async def create_unit_allocation(
     )
     await session.commit()
     await session.refresh(item)
-    return allocation_response(item, unit_code=unit.code, unit_name=unit.name)
+    committed, pipeline = await _allocation_plan_totals(session, allocation_id=item.id)
+    return allocation_response(
+        item,
+        unit_code=unit.code,
+        unit_name=unit.name,
+        committed_amount=committed,
+        draft_pipeline_amount=pipeline,
+    )
 
 
 async def update_unit_allocation(
@@ -336,6 +408,11 @@ async def update_unit_allocation(
             raise conflict(
                 "Total alokasi unit tidak boleh melebihi anggaran tahunan yang disetujui."
             )
+        committed, _ = await _allocation_plan_totals(session, allocation_id=item.id)
+        if amount < committed:
+            raise conflict(
+                "Alokasi unit tidak boleh lebih kecil dari total rencana anggaran APPROVED."
+            )
         item.amount = amount
     if "notes" in changed_fields:
         item.notes = payload.notes.strip() if payload.notes else None
@@ -357,4 +434,11 @@ async def update_unit_allocation(
     )
     await session.commit()
     await session.refresh(item)
-    return allocation_response(item, unit_code=unit.code, unit_name=unit.name)
+    committed, pipeline = await _allocation_plan_totals(session, allocation_id=item.id)
+    return allocation_response(
+        item,
+        unit_code=unit.code,
+        unit_name=unit.name,
+        committed_amount=committed,
+        draft_pipeline_amount=pipeline,
+    )

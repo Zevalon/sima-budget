@@ -31,6 +31,9 @@ vi.mock("../src/features/unit-allocations/api/unitAllocations", () => ({
     annual_budget_amount: "600000000000.00",
     allocated_amount: "300000000000.00",
     remaining_amount: "300000000000.00",
+    committed_amount: "30000000000.00",
+    draft_pipeline_amount: "15000000000.00",
+    available_amount: "270000000000.00",
     allocations: [
       {
         id: "allocation-1",
@@ -40,6 +43,9 @@ vi.mock("../src/features/unit-allocations/api/unitAllocations", () => ({
         organization_unit_code: "IT",
         organization_unit_name: "UPT Teknologi Informasi",
         amount: "120000000000.00",
+        committed_amount: "30000000000.00",
+        draft_pipeline_amount: "15000000000.00",
+        available_amount: "90000000000.00",
         notes: null,
         version: 1,
         created_at: "2026-01-01T00:00:00Z",
