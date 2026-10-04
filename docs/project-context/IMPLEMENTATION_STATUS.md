@@ -2,38 +2,29 @@
 
 ## Completed
 
-- CP-01 through CP-07 baselines
 - Phase 0 — Repository & Tooling
 - Phase 1 — Foundation
 - Phase 2 — Budget Foundation
-  - Phase 2A — Fiscal Year & Budget Master Foundation
-  - Phase 2B1 — Annual Budget Core & Submission
-  - Phase 2B2 — Annual Budget Approval & Rejection
-  - Phase 2C — Unit Allocation
-  - Phase 2D — Budget Foundation Hardening & Completion
-- Deterministic Development Seed Baseline through Phase 2
+- Phase 3A — Budget Plan Core & Versioned Items
 
 ## Current
 
-Phase 3A — Budget Plan Core & Versioned Items.
+### Phase 3B — Budget Plan Submission & Approval
 
-Current scope:
+Implementation adds:
 
-- Budget Plan header bound to Unit Allocation;
-- version container and versioned plan items;
-- quantity × unit price computed with Decimal;
-- unit-scoped access for Unit PIC;
-- draft editing with optimistic row-version protection;
-- per-plan validation against Unit Allocation;
-- Phase 3 seed extension;
-- Rencana Anggaran frontend page.
+- Budget Plan submission;
+- exact-version approval records;
+- Unit Approver scoped inbox;
+- approve/reject;
+- self-approval guard;
+- rejected-plan revision to a new version;
+- resubmission and approval history;
+- Phase 3B development seed scenarios.
 
-## Next after Phase 3A validation
+## Next after Phase 3B validation
 
-Phase 3B — Plan Submission & Approval.
+Phase 3C — Commitment & Available Budget Controls.
 
-Approved versions must become immutable and later commitment logic must preserve:
-
-```text
-Committed Approved Plans <= Unit Allocation
-```
+Phase 3C will make approved plans consume Unit Allocation and add aggregate/concurrency-safe
+`Committed` and `Available` calculations.

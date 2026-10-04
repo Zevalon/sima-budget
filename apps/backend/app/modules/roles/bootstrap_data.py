@@ -54,6 +54,12 @@ PHASE3A_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("budget_plans.update", "Ubah Draft Rencana Anggaran", "budget_plans"),
 )
 
+PHASE3B_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("budget_plans.submit", "Ajukan Rencana Anggaran", "budget_plans"),
+    ("budget_plans.approve", "Setujui atau Tolak Rencana Anggaran", "budget_plans"),
+    ("budget_plans.revise", "Revisi Rencana Anggaran Ditolak", "budget_plans"),
+)
+
 ALL_BOOTSTRAP_PERMISSIONS = (
     FOUNDATION_PERMISSIONS
     + PHASE2A_PERMISSIONS
@@ -61,6 +67,7 @@ ALL_BOOTSTRAP_PERMISSIONS = (
     + PHASE2B2_PERMISSIONS
     + PHASE2C_PERMISSIONS
     + PHASE3A_PERMISSIONS
+    + PHASE3B_PERMISSIONS
 )
 
 PHASE2A_VIEW_PERMISSIONS = (
@@ -78,6 +85,8 @@ PHASE2C_VIEW_PERMISSIONS = ("unit_allocations.view",)
 PHASE2C_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2C_PERMISSIONS)
 PHASE3A_VIEW_PERMISSIONS = ("budget_plans.view",)
 PHASE3A_UNIT_PIC_PERMISSIONS = tuple(code for code, _, _ in PHASE3A_PERMISSIONS)
+PHASE3B_UNIT_PIC_PERMISSIONS = ("budget_plans.submit", "budget_plans.revise")
+PHASE3B_UNIT_APPROVER_PERMISSIONS = ("budget_plans.approve",)
 
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
@@ -112,7 +121,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         "Template user operasional unit. Permission rencana anggaran ditambahkan pada Phase 3.",
         ("settings.view", "organization_units.view")
         + PHASE2A_VIEW_PERMISSIONS
-        + PHASE3A_UNIT_PIC_PERMISSIONS,
+        + PHASE3A_UNIT_PIC_PERMISSIONS
+        + PHASE3B_UNIT_PIC_PERMISSIONS,
     ),
     (
         "UNIT_APPROVER",
@@ -120,7 +130,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         "Template approver unit. Permission approval ditambahkan pada Phase 4.",
         ("settings.view", "organization_units.view")
         + PHASE2A_VIEW_PERMISSIONS
-        + PHASE3A_VIEW_PERMISSIONS,
+        + PHASE3A_VIEW_PERMISSIONS
+        + PHASE3B_UNIT_APPROVER_PERMISSIONS,
     ),
     (
         "MANAGEMENT_APPROVER",

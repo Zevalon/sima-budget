@@ -7,10 +7,18 @@ import { useFiscalYear } from "../../budget-foundation/fiscal-year-context";
 import {
   createBudgetPlan,
   getBudgetPlanContext,
+  listBudgetPlanApprovals,
   listBudgetPlans,
+  reviseBudgetPlan,
+  submitBudgetPlan,
   updateBudgetPlan,
 } from "../api/budgetPlans";
-import type { BudgetPlan, BudgetPlanContext, BudgetPlanItemInput } from "../types";
+import type {
+  BudgetPlan,
+  BudgetPlanApproval,
+  BudgetPlanContext,
+  BudgetPlanItemInput,
+} from "../types";
 
 import "../../../styles/budget-plans.css";
 
@@ -56,6 +64,8 @@ export function BudgetPlansPage() {
   const permissions = useMemo(() => new Set(auth.user?.permissions ?? []), [auth.user]);
   const canCreate = permissions.has("budget_plans.create");
   const canUpdate = permissions.has("budget_plans.update");
+  const canSubmit = permissions.has("budget_plans.submit");
+  const canRevise = permissions.has("budget_plans.revise");
   const [context, setContext] = useState<BudgetPlanContext | null>(null);
   const [plans, setPlans] = useState<BudgetPlan[]>([]);
   const [createItems, setCreateItems] = useState<EditableItem[]>([]);
@@ -66,6 +76,7 @@ export function BudgetPlansPage() {
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [successMessage, setSuccessMessage] = useState<string | null>(null);
+  const [approvalHistory, setApprovalHistory] = useState<Record<string, BudgetPlanApproval[]>>({});
 
   async function reload() {
     if (!selectedFiscalYear) {
@@ -180,18 +191,49 @@ export function BudgetPlansPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await updateBudgetPlan(plan.id, {
+      const payload = {
         expected_row_version: plan.row_version,
         title: editTitle,
         description: editDescription || null,
         items: inputItems(editItems),
-      });
+      };
+      if (plan.status === "REJECTED") {
+        await reviseBudgetPlan(plan.id, payload);
+        setSuccessMessage("Revisi baru berhasil dibuat sebagai draft.");
+      } else {
+        await updateBudgetPlan(plan.id, payload);
+        setSuccessMessage("Draft rencana anggaran berhasil diperbarui.");
+      }
       setEditingPlanId(null);
-      setSuccessMessage("Draft rencana anggaran berhasil diperbarui.");
       await reload();
     } catch (error: unknown) {
       setErrorMessage(
-        error instanceof ApiError ? error.message : "Gagal memperbarui rencana anggaran.",
+        error instanceof ApiError ? error.message : "Gagal menyimpan rencana anggaran.",
+      );
+    }
+  }
+
+  async function loadApprovalHistory(plan: BudgetPlan) {
+    setErrorMessage(null);
+    try {
+      const history = await listBudgetPlanApprovals(plan.id);
+      setApprovalHistory((current) => ({ ...current, [plan.id]: history }));
+    } catch (error: unknown) {
+      setErrorMessage(error instanceof ApiError ? error.message : "Gagal memuat riwayat approval.");
+    }
+  }
+
+  async function handleSubmit(plan: BudgetPlan) {
+    if (!window.confirm(`Ajukan ${plan.plan_number} versi ${plan.current_version_no}?`)) return;
+    setErrorMessage(null);
+    setSuccessMessage(null);
+    try {
+      await submitBudgetPlan(plan.id);
+      setSuccessMessage(`${plan.plan_number} berhasil diajukan untuk persetujuan.`);
+      await reload();
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof ApiError ? error.message : "Gagal mengajukan rencana anggaran.",
       );
     }
   }
@@ -560,13 +602,28 @@ export function BudgetPlansPage() {
                           type="submit"
                           disabled={editItems.length === 0}
                         >
-                          Simpan Perubahan
+                          {plan.status === "REJECTED" ? "Simpan Revisi" : "Simpan Perubahan"}
                         </button>
                       </div>
                     </form>
                   ) : (
                     <>
                       <p>{plan.description || "Tidak ada deskripsi."}</p>
+                      {plan.rejection_reason ? (
+                        <div className="form-alert">
+                          <strong>Alasan penolakan:</strong> {plan.rejection_reason}
+                        </div>
+                      ) : null}
+                      {plan.submitted_at && plan.status === "PENDING_APPROVAL" ? (
+                        <p className="muted">
+                          Diajukan {new Date(plan.submitted_at).toLocaleString("id-ID")}
+                        </p>
+                      ) : null}
+                      {plan.approved_at && plan.status === "APPROVED" ? (
+                        <p className="muted">
+                          Disetujui {new Date(plan.approved_at).toLocaleString("id-ID")}
+                        </p>
+                      ) : null}
                       <div className="table-scroll">
                         <table className="data-table">
                           <thead>
@@ -595,19 +652,66 @@ export function BudgetPlansPage() {
                           </tbody>
                         </table>
                       </div>
+                      {approvalHistory[plan.id] ? (
+                        <div className="approval-history">
+                          <h4>Riwayat Approval</h4>
+                          {approvalHistory[plan.id].length === 0 ? (
+                            <p className="muted">Belum ada riwayat pengajuan.</p>
+                          ) : (
+                            <ul>
+                              {approvalHistory[plan.id].map((approval) => (
+                                <li key={approval.id}>
+                                  Submission {approval.submission_no} · Versi {approval.version_no}{" "}
+                                  · {approval.status}
+                                  {approval.decision_note ? ` · ${approval.decision_note}` : ""}
+                                </li>
+                              ))}
+                            </ul>
+                          )}
+                        </div>
+                      ) : null}
                       <div className="plan-card-footer">
                         <span className="muted">
                           Versi {plan.current_version_no} · Row {plan.row_version}
                         </span>
-                        {canUpdate && canMutate && plan.status === "DRAFT" ? (
-                          <button
-                            className="secondary-button"
-                            type="button"
-                            onClick={() => beginEdit(plan)}
-                          >
-                            Edit Draft
-                          </button>
-                        ) : null}
+                        <div className="approval-actions">
+                          {plan.status !== "DRAFT" ? (
+                            <button
+                              className="secondary-button"
+                              type="button"
+                              onClick={() => void loadApprovalHistory(plan)}
+                            >
+                              Riwayat Approval
+                            </button>
+                          ) : null}
+                          {canUpdate && canMutate && plan.status === "DRAFT" ? (
+                            <button
+                              className="secondary-button"
+                              type="button"
+                              onClick={() => beginEdit(plan)}
+                            >
+                              Edit Draft
+                            </button>
+                          ) : null}
+                          {canRevise && canMutate && plan.status === "REJECTED" ? (
+                            <button
+                              className="secondary-button"
+                              type="button"
+                              onClick={() => beginEdit(plan)}
+                            >
+                              Buat Revisi
+                            </button>
+                          ) : null}
+                          {canSubmit && canMutate && plan.status === "DRAFT" ? (
+                            <button
+                              className="primary-button"
+                              type="button"
+                              onClick={() => void handleSubmit(plan)}
+                            >
+                              Ajukan
+                            </button>
+                          ) : null}
+                        </div>
                       </div>
                     </>
                   )}

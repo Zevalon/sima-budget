@@ -1,5 +1,11 @@
 import { apiRequest } from "../../../lib/api/client";
-import type { BudgetPlan, BudgetPlanContext, BudgetPlanItemInput } from "../types";
+import type {
+  BudgetPlan,
+  BudgetPlanApproval,
+  BudgetPlanContext,
+  BudgetPlanItemInput,
+  BudgetPlanPendingApproval,
+} from "../types";
 
 export function getBudgetPlanContext(fiscalYearId: string): Promise<BudgetPlanContext> {
   return apiRequest<BudgetPlanContext>(
@@ -38,6 +44,60 @@ export function updateBudgetPlan(
   return apiRequest<BudgetPlan>(
     `/budget-plans/${planId}`,
     { method: "PATCH", body: JSON.stringify(payload) },
+    { csrf: true },
+  );
+}
+
+export function submitBudgetPlan(planId: string): Promise<BudgetPlan> {
+  return apiRequest<BudgetPlan>(
+    `/budget-plans/${planId}/submit`,
+    { method: "POST" },
+    { csrf: true },
+  );
+}
+
+export function reviseBudgetPlan(
+  planId: string,
+  payload: {
+    expected_row_version: number;
+    title: string;
+    description: string | null;
+    items: BudgetPlanItemInput[];
+  },
+): Promise<BudgetPlan> {
+  return apiRequest<BudgetPlan>(
+    `/budget-plans/${planId}/revise`,
+    { method: "POST", body: JSON.stringify(payload) },
+    { csrf: true },
+  );
+}
+
+export function listBudgetPlanApprovals(planId: string): Promise<BudgetPlanApproval[]> {
+  return apiRequest<BudgetPlanApproval[]>(`/budget-plans/${planId}/approvals`);
+}
+
+export function listPendingBudgetPlanApprovals(
+  fiscalYearId?: string,
+): Promise<BudgetPlanPendingApproval[]> {
+  const query = fiscalYearId ? `?fiscal_year_id=${encodeURIComponent(fiscalYearId)}` : "";
+  return apiRequest<BudgetPlanPendingApproval[]>(`/budget-plan-approvals/pending${query}`);
+}
+
+export function approveBudgetPlan(
+  planId: string,
+  decisionNote: string | null,
+): Promise<BudgetPlan> {
+  return apiRequest<BudgetPlan>(
+    `/budget-plans/${planId}/approve`,
+    { method: "POST", body: JSON.stringify({ decision_note: decisionNote }) },
+    { csrf: true },
+  );
+}
+
+export function rejectBudgetPlan(planId: string, reason: string): Promise<BudgetPlan> {
+  return apiRequest<BudgetPlan>(
+    `/budget-plans/${planId}/reject`,
+    { method: "POST", body: JSON.stringify({ reason }) },
     { csrf: true },
   );
 }
