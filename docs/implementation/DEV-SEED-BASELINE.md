@@ -48,13 +48,13 @@ The seed creates realistic organization units including Finance, HR, IT, FTI, FE
 
 - FY2024 — CLOSED, approved historical Annual Budget.
 - FY2025 — ACTIVE, approved Annual Budget with historical allocation data.
-- FY2026 — PLANNING, approved Annual Budget Rp 600B, with Rp 300B allocated and Rp 300B remaining. This is the primary Phase 2C/Phase 3 development scenario.
+- FY2026 — PLANNING, approved Annual Budget Rp 600B, with Rp 300B allocated and Rp 300B remaining. This is the primary Phase 2C/Phase 3 development scenario. It also includes seeded draft Budget Plans for IT and FTI.
 - FY2027 — DRAFT, intentionally without an Annual Budget.
 
 Approval history includes approved and rejected/resubmitted examples.
 
 ## Seed coverage
 
-The baseline seeds all persistent tables implemented through Phase 2C. `user_sessions` is a runtime/security table; it is cleared on reset and only one expired/revoked sample session is inserted. No usable authenticated session token is seeded.
+The baseline seeds all persistent tables implemented through Phase 3A, including Budget Plan headers, current draft versions, and plan items. `user_sessions` is a runtime/security table; it is cleared on reset and only one expired/revoked sample session is inserted. No usable authenticated session token is seeded.
 
 Tables introduced in future phases must extend the same `scripts/seed_dev.py` baseline instead of creating unrelated seed scripts.

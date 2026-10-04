@@ -1,0 +1,91 @@
+.plan-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.plan-summary > div,
+.plan-card-total {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.plan-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.plan-span-full {
+  grid-column: 1 / -1;
+}
+
+.plan-items,
+.plan-list,
+.plan-edit {
+  display: grid;
+  gap: 1rem;
+}
+
+.plan-item-editor {
+  display: grid;
+  grid-template-columns: minmax(220px, 2fr) 1fr 1fr 0.6fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+  padding: 0.9rem;
+  border: 1px solid var(--border-color, #dce3ec);
+  border-radius: 0.8rem;
+}
+
+.plan-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #dce3ec);
+  border-radius: 0.9rem;
+}
+
+.plan-card-header,
+.plan-card-footer,
+.plan-actions {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.plan-card-header > div:first-child {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.plan-card-total {
+  justify-items: end;
+  text-align: right;
+}
+
+.plan-actions {
+  justify-content: flex-end;
+}
+
+@media (max-width: 1050px) {
+  .plan-summary,
+  .plan-form,
+  .plan-item-editor {
+    grid-template-columns: 1fr;
+  }
+
+  .plan-span-full {
+    grid-column: auto;
+  }
+
+  .plan-card-header,
+  .plan-card-footer {
+    flex-direction: column;
+  }
+
+  .plan-card-total {
+    justify-items: start;
+    text-align: left;
+  }
+}

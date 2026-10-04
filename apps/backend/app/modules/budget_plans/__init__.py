@@ -1,0 +1,1 @@
+"""Budget plan domain module."""

@@ -14,6 +14,7 @@ import { FiscalYearsPage } from "../features/budget-foundation/pages/FiscalYears
 import { MasterDataHomePage } from "../features/budget-foundation/pages/MasterDataHomePage";
 import { UnitsOfMeasurePage } from "../features/budget-foundation/pages/UnitsOfMeasurePage";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
+import { BudgetPlansPage } from "../features/budget-plans/pages/BudgetPlansPage";
 import { AuditLogPage } from "../features/foundation/pages/AuditLogPage";
 import { SettingsPage } from "../features/foundation/pages/SettingsPage";
 import { UnitAllocationsPage } from "../features/unit-allocations/pages/UnitAllocationsPage";
@@ -55,6 +56,15 @@ export const router = createBrowserRouter([
               {
                 path: "unit-allocations",
                 element: <UnitAllocationsPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["budget_plans.view"]} />,
+            children: [
+              {
+                path: "budget-plans",
+                element: <BudgetPlansPage />,
               },
             ],
           },
