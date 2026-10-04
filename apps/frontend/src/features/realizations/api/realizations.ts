@@ -59,3 +59,47 @@ export function postRealization(
     { csrf: true },
   );
 }
+
+export function cancelRealization(
+  realizationId: string,
+  expectedRowVersion: number,
+  reason: string,
+): Promise<Realization> {
+  return apiRequest<Realization>(
+    `/realizations/${realizationId}/cancel`,
+    {
+      method: "POST",
+      body: JSON.stringify({ expected_row_version: expectedRowVersion, reason }),
+    },
+    { csrf: true },
+  );
+}
+
+export function reverseRealization(
+  realizationId: string,
+  expectedRowVersion: number,
+  reason: string,
+): Promise<Realization> {
+  return apiRequest<Realization>(
+    `/realizations/${realizationId}/reverse`,
+    {
+      method: "POST",
+      body: JSON.stringify({ expected_row_version: expectedRowVersion, reason }),
+    },
+    { csrf: true },
+  );
+}
+
+export function createCorrectionDraft(
+  realizationId: string,
+  expectedRowVersion: number,
+): Promise<Realization> {
+  return apiRequest<Realization>(
+    `/realizations/${realizationId}/correction`,
+    {
+      method: "POST",
+      body: JSON.stringify({ expected_row_version: expectedRowVersion }),
+    },
+    { csrf: true },
+  );
+}

@@ -3526,6 +3526,213 @@
         }
       }
     },
+    "/api/v1/realizations/{realization_id}/cancel": {
+      "post": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Cancel Realization Endpoint",
+        "operationId": "cancel_realization_endpoint_api_v1_realizations__realization_id__cancel_post",
+        "parameters": [
+          {
+            "name": "realization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Realization Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizationStatusActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/realizations/{realization_id}/reverse": {
+      "post": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Reverse Realization Endpoint",
+        "operationId": "reverse_realization_endpoint_api_v1_realizations__realization_id__reverse_post",
+        "parameters": [
+          {
+            "name": "realization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Realization Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizationStatusActionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/realizations/{realization_id}/correction": {
+      "post": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Create Correction Draft Endpoint",
+        "operationId": "create_correction_draft_endpoint_api_v1_realizations__realization_id__correction_post",
+        "parameters": [
+          {
+            "name": "realization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Realization Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizationCorrectionRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "tags": [
@@ -6314,6 +6521,20 @@
         ],
         "title": "RealizationContextResponse"
       },
+      "RealizationCorrectionRequest": {
+        "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_row_version"
+        ],
+        "title": "RealizationCorrectionRequest"
+      },
       "RealizationCreateRequest": {
         "properties": {
           "budget_plan_id": {
@@ -6594,6 +6815,100 @@
             ],
             "title": "Posted At"
           },
+          "correction_of_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correction Of Id"
+          },
+          "correction_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Correction Id"
+          },
+          "cancelled_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled By"
+          },
+          "cancelled_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancelled At"
+          },
+          "cancellation_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Cancellation Reason"
+          },
+          "reversed_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reversed By"
+          },
+          "reversed_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reversed At"
+          },
+          "reversal_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Reversal Reason"
+          },
           "created_at": {
             "type": "string",
             "format": "date-time",
@@ -6632,6 +6947,14 @@
           "created_by",
           "posted_by",
           "posted_at",
+          "correction_of_id",
+          "correction_id",
+          "cancelled_by",
+          "cancelled_at",
+          "cancellation_reason",
+          "reversed_by",
+          "reversed_at",
+          "reversal_reason",
           "created_at",
           "updated_at"
         ],
@@ -6646,6 +6969,27 @@
           "CANCELLED"
         ],
         "title": "RealizationStatus"
+      },
+      "RealizationStatusActionRequest": {
+        "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          },
+          "reason": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 3,
+            "title": "Reason"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_row_version",
+          "reason"
+        ],
+        "title": "RealizationStatusActionRequest"
       },
       "RealizationUpdateRequest": {
         "properties": {

@@ -459,6 +459,12 @@ async def apply_seed() -> None:
         ).all()
         if plan_ids:
             await session.execute(
+                delete(Realization).where(
+                    Realization.budget_plan_id.in_(plan_ids),
+                    Realization.correction_of_id.is_not(None),
+                )
+            )
+            await session.execute(
                 delete(Realization).where(Realization.budget_plan_id.in_(plan_ids))
             )
             await session.execute(
@@ -844,7 +850,73 @@ async def apply_seed() -> None:
             row_version=1,
             created_by=users["itpic"].id,
         )
-        session.add_all([posted_realization, draft_realization])
+        cancelled_realization = Realization(
+            organization_id=organization.id,
+            fiscal_year_id=fiscal_years["FY2025"].id,
+            budget_plan_id=fy2025_plan.id,
+            plan_version_id=fy2025_version.id,
+            organization_unit_id=units["IT"].id,
+            realization_number="DEV-RLZ-FY2025-IT-003",
+            status="CANCELLED",
+            realization_date=date(2025, 4, 10),
+            reference_number="CANCEL-DEV-2025-003",
+            description="Contoh draft realisasi yang dibatalkan",
+            vendor_name=None,
+            amount=Decimal("1000000000.00"),
+            row_version=2,
+            created_by=users["itpic"].id,
+            cancelled_by=users["itpic"].id,
+            cancelled_at=now - timedelta(days=180),
+            cancellation_reason="Dokumen pengadaan dibatalkan pada baseline development.",
+        )
+        reversed_realization = Realization(
+            organization_id=organization.id,
+            fiscal_year_id=fiscal_years["FY2025"].id,
+            budget_plan_id=fy2025_plan.id,
+            plan_version_id=fy2025_version.id,
+            organization_unit_id=units["IT"].id,
+            realization_number="DEV-RLZ-FY2025-IT-004",
+            status="REVERSED",
+            realization_date=date(2025, 5, 10),
+            reference_number="REV-DEV-2025-004",
+            description="Contoh realisasi yang telah direversal",
+            vendor_name="Vendor Koreksi Demo",
+            amount=Decimal("1500000000.00"),
+            row_version=3,
+            created_by=users["itpic"].id,
+            posted_by=users["itpic"].id,
+            posted_at=now - timedelta(days=170),
+            reversed_by=users["itpic"].id,
+            reversed_at=now - timedelta(days=160),
+            reversal_reason="Nominal pada dokumen sumber perlu dikoreksi.",
+        )
+        session.add_all(
+            [
+                posted_realization,
+                draft_realization,
+                cancelled_realization,
+                reversed_realization,
+            ]
+        )
+        await session.flush()
+        correction_realization = Realization(
+            organization_id=organization.id,
+            fiscal_year_id=fiscal_years["FY2025"].id,
+            budget_plan_id=fy2025_plan.id,
+            plan_version_id=fy2025_version.id,
+            organization_unit_id=units["IT"].id,
+            realization_number="DEV-RLZ-FY2025-IT-005",
+            status="DRAFT",
+            realization_date=date(2025, 5, 10),
+            reference_number="CORR-REV-DEV-2025-004",
+            description="Draft koreksi dari realisasi yang direversal",
+            vendor_name="Vendor Koreksi Demo",
+            amount=Decimal("1400000000.00"),
+            row_version=1,
+            created_by=users["itpic"].id,
+            correction_of_id=reversed_realization.id,
+        )
+        session.add(correction_realization)
 
         viewer = users["viewer"]
         expired_at = now - timedelta(days=1)
@@ -902,6 +974,36 @@ async def apply_seed() -> None:
                 ),
                 AuditLog(
                     organization_id=organization.id,
+                    actor_user_id=users["itpic"].id,
+                    action="REALIZATION_CANCELLED",
+                    entity_type="realization",
+                    entity_id=cancelled_realization.id,
+                    after_data={"status": "CANCELLED"},
+                    metadata_json={"seed_profile": SEED_PROFILE},
+                ),
+                AuditLog(
+                    organization_id=organization.id,
+                    actor_user_id=users["itpic"].id,
+                    action="REALIZATION_REVERSED",
+                    entity_type="realization",
+                    entity_id=reversed_realization.id,
+                    after_data={"status": "REVERSED"},
+                    metadata_json={"seed_profile": SEED_PROFILE},
+                ),
+                AuditLog(
+                    organization_id=organization.id,
+                    actor_user_id=users["itpic"].id,
+                    action="REALIZATION_CORRECTION_DRAFT_CREATED",
+                    entity_type="realization",
+                    entity_id=correction_realization.id,
+                    after_data={
+                        "status": "DRAFT",
+                        "correction_of_id": str(reversed_realization.id),
+                    },
+                    metadata_json={"seed_profile": SEED_PROFILE},
+                ),
+                AuditLog(
+                    organization_id=organization.id,
                     actor_user_id=users["sysadmin"].id,
                     action="DEV_SEED_APPLIED",
                     entity_type="development_seed",
@@ -939,7 +1041,7 @@ async def main() -> None:
     print("Akun utama: sysadmin, budgetadmin, management, auditor, viewer")
     print("Akun unit: itpic, itapprover, ftipic, ftiapprover")
     print(
-        "FY2025 = ACTIVE + approved plan + posted/draft realization; "
+        "FY2025 = ACTIVE + approved plan + posted/draft/cancelled/reversed/correction realization; "
         "FY2026 = PLANNING + planning/approval/commitment scenarios."
     )
 

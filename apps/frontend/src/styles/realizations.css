@@ -123,3 +123,30 @@
     grid-column: auto;
   }
 }
+
+.realization-reason {
+  padding: 10px 12px;
+  border-radius: 10px;
+  background: #f9fafb;
+  color: #475467;
+  font-size: 13px;
+}
+
+.realization-page .danger-button {
+  border: 1px solid #fda29b;
+  border-radius: 8px;
+  padding: 9px 14px;
+  background: white;
+  color: #b42318;
+  font-weight: 600;
+}
+
+.status-reversed {
+  background: #fff4e5;
+  color: #b54708;
+}
+
+.status-cancelled {
+  background: #fef3f2;
+  color: #b42318;
+}

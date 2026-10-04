@@ -51,6 +51,14 @@ export type Realization = {
   created_by: string;
   posted_by: string | null;
   posted_at: string | null;
+  correction_of_id: string | null;
+  correction_id: string | null;
+  cancelled_by: string | null;
+  cancelled_at: string | null;
+  cancellation_reason: string | null;
+  reversed_by: string | null;
+  reversed_at: string | null;
+  reversal_reason: string | null;
   created_at: string;
   updated_at: string;
 };

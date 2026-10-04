@@ -3,7 +3,7 @@ from decimal import Decimal
 from enum import StrEnum
 from uuid import UUID
 
-from pydantic import BaseModel, Field
+from pydantic import BaseModel, Field, field_validator
 
 from app.modules.budget_foundation.schemas import FiscalYearStatus
 
@@ -34,6 +34,23 @@ class RealizationUpdateRequest(BaseModel):
 
 
 class RealizationPostRequest(BaseModel):
+    expected_row_version: int = Field(ge=1)
+
+
+class RealizationStatusActionRequest(BaseModel):
+    expected_row_version: int = Field(ge=1)
+    reason: str = Field(min_length=3, max_length=500)
+
+    @field_validator("reason")
+    @classmethod
+    def validate_reason(cls, value: str) -> str:
+        normalized = value.strip()
+        if len(normalized) < 3:
+            raise ValueError("reason minimal 3 karakter non-spasi")
+        return normalized
+
+
+class RealizationCorrectionRequest(BaseModel):
     expected_row_version: int = Field(ge=1)
 
 
@@ -88,5 +105,13 @@ class RealizationResponse(BaseModel):
     created_by: UUID
     posted_by: UUID | None
     posted_at: datetime | None
+    correction_of_id: UUID | None
+    correction_id: UUID | None
+    cancelled_by: UUID | None
+    cancelled_at: datetime | None
+    cancellation_reason: str | None
+    reversed_by: UUID | None
+    reversed_at: datetime | None
+    reversal_reason: str | None
     created_at: datetime
     updated_at: datetime

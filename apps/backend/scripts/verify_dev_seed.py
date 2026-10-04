@@ -259,7 +259,7 @@ async def verify() -> None:
                 select(Realization).where(Realization.budget_plan_id == realization_plan.id)
             )
         ).all()
-        assert len(realization_rows) == 2
+        assert len(realization_rows) == 5
         realized_amount = sum(
             (item.amount for item in realization_rows if item.status == "POSTED"),
             Decimal("0.00"),
@@ -269,7 +269,16 @@ async def verify() -> None:
             Decimal("0.00"),
         )
         assert realized_amount == Decimal("5000000000.00")
-        assert draft_realization == Decimal("2000000000.00")
+        assert draft_realization == Decimal("3400000000.00")
+        cancelled = [item for item in realization_rows if item.status == "CANCELLED"]
+        reversed_items = [item for item in realization_rows if item.status == "REVERSED"]
+        corrections = [item for item in realization_rows if item.correction_of_id is not None]
+        assert len(cancelled) == 1
+        assert cancelled[0].cancellation_reason is not None
+        assert len(reversed_items) == 1
+        assert reversed_items[0].reversal_reason is not None
+        assert len(corrections) == 1
+        assert corrections[0].correction_of_id == reversed_items[0].id
 
         revoked_seed_session = await session.scalar(
             select(UserSession).where(UserSession.user_id == users_by_username["viewer"].id)
