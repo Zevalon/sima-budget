@@ -2,16 +2,27 @@ import { NavLink, Outlet } from "react-router-dom";
 
 import { useAuth } from "../features/auth/auth-context";
 
-const navigation = [
-  ["Dashboard", "/app/dashboard"],
-  ["Anggaran", "#"],
-  ["Rencana Anggaran", "#"],
-  ["Realisasi", "#"],
-  ["Approval", "#"],
-  ["Laporan", "#"],
-  ["Master Data", "#"],
-  ["Administration", "#"],
-] as const;
+type NavigationItem = {
+  label: string;
+  to: string;
+  permissionAnyOf?: string[];
+  disabled?: boolean;
+};
+
+const navigation: NavigationItem[] = [
+  { label: "Dashboard", to: "/app/dashboard" },
+  { label: "Anggaran", to: "#", disabled: true },
+  { label: "Rencana Anggaran", to: "#", disabled: true },
+  { label: "Realisasi", to: "#", disabled: true },
+  { label: "Approval", to: "#", disabled: true },
+  { label: "Laporan", to: "#", disabled: true },
+  { label: "Master Data", to: "#", disabled: true },
+  {
+    label: "Administration",
+    to: "/app/administration",
+    permissionAnyOf: ["users.view", "roles.view", "permissions.view", "organization_units.view"],
+  },
+];
 
 function initials(name: string): string {
   return name
@@ -25,6 +36,14 @@ function initials(name: string): string {
 export function AppShell() {
   const auth = useAuth();
   const user = auth.user;
+  const permissions = new Set(user?.permissions ?? []);
+
+  const visibleNavigation = navigation.filter((item) => {
+    if (!item.permissionAnyOf) {
+      return true;
+    }
+    return item.permissionAnyOf.some((permission) => permissions.has(permission));
+  });
 
   return (
     <div className="app-shell">
@@ -37,15 +56,15 @@ export function AppShell() {
           </div>
         </div>
         <nav aria-label="Navigasi utama">
-          {navigation.map(([label, to]) =>
-            to === "#" ? (
-              <span className="nav-item nav-item-disabled" key={label} aria-disabled="true">
-                {label}
+          {visibleNavigation.map((item) =>
+            item.disabled ? (
+              <span className="nav-item nav-item-disabled" key={item.label} aria-disabled="true">
+                {item.label}
                 <small>segera</small>
               </span>
             ) : (
-              <NavLink className="nav-item" to={to} key={label}>
-                {label}
+              <NavLink className="nav-item" to={item.to} key={item.label}>
+                {item.label}
               </NavLink>
             ),
           )}
