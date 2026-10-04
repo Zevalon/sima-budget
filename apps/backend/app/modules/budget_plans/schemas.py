@@ -16,6 +16,12 @@ class BudgetPlanStatus(StrEnum):
     CANCELLED = "CANCELLED"
 
 
+class BudgetPlanApprovalStatus(StrEnum):
+    PENDING = "PENDING"
+    APPROVED = "APPROVED"
+    REJECTED = "REJECTED"
+
+
 class BudgetPlanItemRequest(BaseModel):
     budget_category_id: UUID
     unit_of_measure_id: UUID
@@ -37,6 +43,18 @@ class BudgetPlanUpdateRequest(BaseModel):
     title: str = Field(min_length=1, max_length=250)
     description: str | None = Field(default=None, max_length=4000)
     items: list[BudgetPlanItemRequest] = Field(min_length=1, max_length=200)
+
+
+class BudgetPlanRevisionRequest(BudgetPlanUpdateRequest):
+    pass
+
+
+class BudgetPlanApproveRequest(BaseModel):
+    decision_note: str | None = Field(default=None, max_length=2000)
+
+
+class BudgetPlanRejectRequest(BaseModel):
+    reason: str = Field(min_length=3, max_length=2000)
 
 
 class BudgetPlanItemResponse(BaseModel):
@@ -73,8 +91,34 @@ class BudgetPlanResponse(BaseModel):
     total_amount: Decimal
     items: list[BudgetPlanItemResponse]
     created_by: UUID
+    submitted_by: UUID | None
+    submitted_at: datetime | None
+    approved_by: UUID | None
+    approved_at: datetime | None
+    rejection_reason: str | None
     created_at: datetime
     updated_at: datetime
+
+
+class BudgetPlanApprovalResponse(BaseModel):
+    id: UUID
+    budget_plan_id: UUID
+    plan_version_id: UUID
+    submission_no: int
+    version_no: int
+    status: BudgetPlanApprovalStatus
+    requested_by: UUID
+    requested_at: datetime
+    decided_by: UUID | None
+    decided_at: datetime | None
+    decision_note: str | None
+    created_at: datetime
+    updated_at: datetime
+
+
+class BudgetPlanPendingApprovalResponse(BaseModel):
+    budget_plan: BudgetPlanResponse
+    approval: BudgetPlanApprovalResponse
 
 
 class BudgetPlanAllocationOption(BaseModel):

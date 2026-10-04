@@ -1,86 +1,59 @@
-# PROJECT CONTEXT — SIMA through Phase 3A
+# PROJECT CONTEXT — SIMA through Phase 3B
 
-## Project
+SIMA is an annual budget planning and monitoring application built with React + TypeScript,
+FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 
-SIMA — Sistem Informasi Monitoring Anggaran.
+## Completed foundation
 
-A generic web application for annual budget planning, allocation, approval, realization, monitoring, and reporting. Initial deployment target is a private university.
+Phase 0, Phase 1, and Phase 2 are complete. CP-07 is the Phase 2 checkpoint.
 
-## Technology
+## Phase 3A
 
-- React + TypeScript + Vite
-- FastAPI + Python
-- PostgreSQL
-- SQLAlchemy 2 async + psycopg 3
-- Alembic
-- Docker Compose
-- modular monolith / monorepo
-
-## Completed implementation
-
-### Phase 1 — Foundation
-
-Authentication, server-side sessions, CSRF, users, roles, permissions, scoped RBAC, organization hierarchy, settings, audit, and administration hardening are complete.
-
-### Phase 2 — Budget Foundation
-
-Complete through CP-07:
-
-- Fiscal Year lifecycle;
-- budget categories and units of measure;
-- Annual Budget draft/submission/approval/rejection/revision;
-- Unit Allocation;
-- aggregate budget ceilings;
-- PostgreSQL concurrency protection;
-- optimistic concurrency;
-- real dashboard budget summary;
-- deterministic development seed.
-
-## Current Phase 3A
-
-Budget Plan draft foundation introduces:
+Budget Plan core is implemented:
 
 ```text
-UnitAllocation
-  └── BudgetPlan
-        └── BudgetPlanVersion
-              └── BudgetPlanItem[]
+Unit Allocation
+  -> Budget Plan
+     -> Budget Plan Version
+        -> Budget Plan Items
 ```
 
-Rules:
+Draft plan items use Decimal financial arithmetic and are scoped to organizational units.
 
-- plan belongs to one unit and one Unit Allocation;
-- unit must be allowed to create plans;
-- draft creation/editing is allowed only in PLANNING;
-- Unit PIC access follows OWN_UNIT / OWN_UNIT_AND_CHILDREN scope;
-- each item stores quantity, unit price, category, UOM, and backend-computed amount;
-- plan total cannot exceed its source Unit Allocation;
-- draft plan editing uses optimistic row-version protection;
-- draft plans do not consume official committed balance yet;
-- Phase 3B/3C will add submission, approval, immutable approved versions, and committed-budget controls.
+## Phase 3B
 
-## Development Seed
+Budget Plan workflow becomes:
 
-The cumulative development seed is extended with representative FY2026 draft plans for IT and FTI.
-
-Reset command:
-
-```bash
-make dev-seed-reset CONFIRM=RESET
+```text
+DRAFT
+  -> PENDING_APPROVAL
+       -> APPROVED
+       -> REJECTED
+            -> revise -> DRAFT (new version)
 ```
 
-## Core financial invariants
+Every submission stores the exact plan version reviewed. Rejected revisions create a new
+`BudgetPlanVersion`; approved versions are not silently overwritten.
 
-- money uses Decimal / PostgreSQL NUMERIC;
-- Annual Budget approval locks the official pagu;
-- Unit Allocation aggregate may not exceed Annual Budget;
-- Budget Plan approval in later Phase 3 must preserve committed total <= Unit Allocation;
-- concurrent writes must preserve financial ceilings;
-- System Administrator does not imply financial authority;
-- material financial/security mutations are audited.
+Unit PIC owns create/update/submit/revise within scope. Unit Approver owns approve/reject
+within scope. Self-approval follows application settings and is disabled by default.
 
-## Next
+## Important Phase 3B boundary
 
-After Phase 3A validation, smoke testing, CI, and merge:
+Approval is implemented, but aggregate financial commitment across multiple approved plans
+is intentionally deferred to Phase 3C.
 
-**Phase 3B — Budget Plan Submission & Approval.**
+Phase 3C must enforce:
+
+```text
+Committed approved plans <= Unit Allocation
+Available = Unit Allocation - Committed
+```
+
+The aggregate check must be concurrency-safe using the PostgreSQL locking principles
+established in Phase 2C.
+
+## Development seed
+
+The cumulative development seed is extended with pending and rejected Budget Plan scenarios.
+Future phases continue extending the same seed baseline.

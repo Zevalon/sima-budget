@@ -13,7 +13,12 @@ from app.modules.annual_budgets.models import AnnualBudget, AnnualBudgetApproval
 from app.modules.audit.models import AuditLog
 from app.modules.auth.models import UserSession
 from app.modules.budget_foundation.models import BudgetCategory, FiscalYear, UnitOfMeasure
-from app.modules.budget_plans.models import BudgetPlan, BudgetPlanItem, BudgetPlanVersion
+from app.modules.budget_plans.models import (
+    BudgetPlan,
+    BudgetPlanApproval,
+    BudgetPlanItem,
+    BudgetPlanVersion,
+)
 from app.modules.organizations.models import (
     Organization,
     OrganizationUnit,
@@ -446,6 +451,15 @@ async def apply_seed() -> None:
                 AnnualBudgetApproval.annual_budget_id.in_(budget_ids)
             )
         )
+        plan_ids = (
+            await session.scalars(
+                select(BudgetPlan.id).where(BudgetPlan.organization_id == organization.id)
+            )
+        ).all()
+        if plan_ids:
+            await session.execute(
+                delete(BudgetPlanApproval).where(BudgetPlanApproval.budget_plan_id.in_(plan_ids))
+            )
         await session.execute(
             delete(BudgetPlan).where(BudgetPlan.organization_id == organization.id)
         )
@@ -549,8 +563,9 @@ async def apply_seed() -> None:
                 "DEV-FY2026-IT-001",
                 "IT",
                 "itpic",
+                "PENDING_APPROVAL",
                 "Modernisasi Infrastruktur TI",
-                "Draft baseline untuk pengujian rencana anggaran unit TI.",
+                "Pengajuan baseline untuk pengujian approval rencana anggaran unit TI.",
                 (
                     (
                         "IT",
@@ -567,13 +582,16 @@ async def apply_seed() -> None:
                         Decimal("250000000.00"),
                     ),
                 ),
+                "itapprover",
+                None,
             ),
             (
                 "DEV-FY2026-FTI-001",
                 "FTI",
                 "ftipic",
+                "REJECTED",
                 "Penguatan Laboratorium Informatika",
-                "Draft baseline fakultas untuk Phase 3.",
+                "Baseline fakultas yang ditolak untuk pengujian revisi Phase 3B.",
                 (
                     (
                         "CAPEX",
@@ -590,20 +608,41 @@ async def apply_seed() -> None:
                         Decimal("100000000.00"),
                     ),
                 ),
+                "ftiapprover",
+                "Perjelas prioritas dan justifikasi item sebelum diajukan ulang.",
             ),
         )
-        for plan_number, unit_code, username, title, description, item_specs in plan_specs:
+        for (
+            plan_number,
+            unit_code,
+            username,
+            plan_status,
+            title,
+            description,
+            item_specs,
+            approver_username,
+            rejection_reason,
+        ) in plan_specs:
             allocation = allocations_by_key[("FY2026", unit_code)]
+            submitted_at = now - timedelta(days=5 if unit_code == "IT" else 8)
+            decided_at = (
+                None if plan_status == "PENDING_APPROVAL" else submitted_at + timedelta(days=1)
+            )
             plan = BudgetPlan(
                 organization_id=organization.id,
                 fiscal_year_id=fiscal_years["FY2026"].id,
                 unit_allocation_id=allocation.id,
                 organization_unit_id=units[unit_code].id,
                 plan_number=plan_number,
-                status="DRAFT",
+                status=plan_status,
                 current_version_no=1,
-                row_version=1,
+                row_version=2 if plan_status == "PENDING_APPROVAL" else 3,
                 created_by=users[username].id,
+                submitted_by=users[username].id,
+                submitted_at=submitted_at,
+                approved_by=None,
+                approved_at=None,
+                rejection_reason=rejection_reason,
             )
             session.add(plan)
             await session.flush()
@@ -642,6 +681,24 @@ async def apply_seed() -> None:
                         notes=None,
                     )
                 )
+
+            approval_status = "PENDING" if plan_status == "PENDING_APPROVAL" else "REJECTED"
+            session.add(
+                BudgetPlanApproval(
+                    organization_id=organization.id,
+                    budget_plan_id=plan.id,
+                    plan_version_id=version.id,
+                    submission_no=1,
+                    status=approval_status,
+                    requested_by=users[username].id,
+                    requested_at=submitted_at,
+                    decided_by=(
+                        users[approver_username].id if approval_status == "REJECTED" else None
+                    ),
+                    decided_at=decided_at,
+                    decision_note=rejection_reason,
+                )
+            )
 
         viewer = users["viewer"]
         expired_at = now - timedelta(days=1)
@@ -723,7 +780,7 @@ async def main() -> None:
     print("Login password seluruh akun seed:", password)
     print("Akun utama: sysadmin, budgetadmin, management, auditor, viewer")
     print("Akun unit: itpic, itapprover, ftipic, ftiapprover")
-    print("FY2026 = PLANNING + Annual Budget APPROVED + allocations + draft Budget Plans.")
+    print("FY2026 = PLANNING + approved annual budget + allocations + plan approval scenarios.")
 
 
 if __name__ == "__main__":

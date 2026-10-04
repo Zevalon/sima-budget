@@ -1,8 +1,9 @@
+from datetime import UTC, datetime
 from decimal import ROUND_HALF_UP, Decimal
 from uuid import UUID, uuid4
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, select
+from sqlalchemy import delete, func, select
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.modules.audit.service import record_audit
@@ -10,19 +11,31 @@ from app.modules.auth.repository import get_default_organization
 from app.modules.authorization.service import can_access_unit, get_permission_scope_assignments
 from app.modules.budget_foundation.models import BudgetCategory, FiscalYear, UnitOfMeasure
 from app.modules.budget_foundation.schemas import FiscalYearStatus
-from app.modules.budget_plans.models import BudgetPlan, BudgetPlanItem, BudgetPlanVersion
+from app.modules.budget_plans.models import (
+    BudgetPlan,
+    BudgetPlanApproval,
+    BudgetPlanItem,
+    BudgetPlanVersion,
+)
 from app.modules.budget_plans.schemas import (
     BudgetPlanAllocationOption,
+    BudgetPlanApprovalResponse,
+    BudgetPlanApprovalStatus,
+    BudgetPlanApproveRequest,
     BudgetPlanContextResponse,
     BudgetPlanCreateRequest,
     BudgetPlanItemRequest,
     BudgetPlanItemResponse,
     BudgetPlanLookupOption,
+    BudgetPlanPendingApprovalResponse,
+    BudgetPlanRejectRequest,
     BudgetPlanResponse,
+    BudgetPlanRevisionRequest,
     BudgetPlanStatus,
     BudgetPlanUpdateRequest,
 )
 from app.modules.organizations.models import OrganizationUnit
+from app.modules.settings.service import get_application_setting
 from app.modules.unit_allocations.models import UnitAllocation
 
 MONEY_QUANTUM = Decimal("0.01")
@@ -227,6 +240,11 @@ async def _response(session: AsyncSession, plan: BudgetPlan) -> BudgetPlanRespon
             for item, category, uom in rows
         ],
         created_by=plan.created_by,
+        submitted_by=plan.submitted_by,
+        submitted_at=plan.submitted_at,
+        approved_by=plan.approved_by,
+        approved_at=plan.approved_at,
+        rejection_reason=plan.rejection_reason,
         created_at=plan.created_at,
         updated_at=plan.updated_at,
     )
@@ -543,3 +561,459 @@ async def update_budget_plan(
     await session.commit()
     await session.refresh(plan)
     return await _response(session, plan)
+
+
+def _approval_response(
+    approval: BudgetPlanApproval,
+    *,
+    version_no: int,
+) -> BudgetPlanApprovalResponse:
+    return BudgetPlanApprovalResponse(
+        id=approval.id,
+        budget_plan_id=approval.budget_plan_id,
+        plan_version_id=approval.plan_version_id,
+        submission_no=approval.submission_no,
+        version_no=version_no,
+        status=BudgetPlanApprovalStatus(approval.status),
+        requested_by=approval.requested_by,
+        requested_at=approval.requested_at,
+        decided_by=approval.decided_by,
+        decided_at=approval.decided_at,
+        decision_note=approval.decision_note,
+        created_at=approval.created_at,
+        updated_at=approval.updated_at,
+    )
+
+
+async def _current_version(
+    session: AsyncSession,
+    *,
+    plan: BudgetPlan,
+    lock: bool = False,
+) -> BudgetPlanVersion:
+    statement = select(BudgetPlanVersion).where(
+        BudgetPlanVersion.budget_plan_id == plan.id,
+        BudgetPlanVersion.version_no == plan.current_version_no,
+    )
+    if lock:
+        statement = statement.with_for_update()
+    version = await session.scalar(statement)
+    if version is None:
+        raise RuntimeError("Versi rencana anggaran tidak ditemukan.")
+    return version
+
+
+async def submit_budget_plan(
+    session: AsyncSession,
+    *,
+    plan_id: UUID,
+    actor_user_id: UUID,
+) -> BudgetPlanResponse:
+    organization = await get_default_organization(session)
+    plan = await session.scalar(
+        select(BudgetPlan)
+        .where(BudgetPlan.id == plan_id, BudgetPlan.organization_id == organization.id)
+        .with_for_update()
+    )
+    if plan is None:
+        raise not_found("Rencana anggaran tidak ditemukan.")
+    await _assert_unit_permission(
+        session,
+        user_id=actor_user_id,
+        permission_code="budget_plans.submit",
+        unit_id=plan.organization_unit_id,
+    )
+    if plan.status != BudgetPlanStatus.DRAFT.value:
+        raise conflict("Hanya rencana anggaran DRAFT yang dapat diajukan.")
+
+    fiscal_year = await _fiscal_year(session, organization.id, plan.fiscal_year_id)
+    if fiscal_year.status != FiscalYearStatus.PLANNING.value:
+        raise conflict("Rencana anggaran hanya dapat diajukan saat tahun anggaran PLANNING.")
+
+    allocation, unit = await _allocation_with_unit(
+        session,
+        organization_id=organization.id,
+        allocation_id=plan.unit_allocation_id,
+        lock=True,
+    )
+    if not unit.is_active or not unit.can_create_budget_plan:
+        raise conflict("Unit organisasi tidak diizinkan mengajukan rencana anggaran.")
+
+    version = await _current_version(session, plan=plan, lock=True)
+    if version.total_amount > allocation.amount:
+        raise conflict("Total rencana anggaran tidak boleh melebihi alokasi unit.")
+
+    submission_no = (
+        int(
+            await session.scalar(
+                select(func.coalesce(func.max(BudgetPlanApproval.submission_no), 0)).where(
+                    BudgetPlanApproval.budget_plan_id == plan.id
+                )
+            )
+            or 0
+        )
+        + 1
+    )
+    now = datetime.now(UTC)
+    approval = BudgetPlanApproval(
+        organization_id=organization.id,
+        budget_plan_id=plan.id,
+        plan_version_id=version.id,
+        submission_no=submission_no,
+        status=BudgetPlanApprovalStatus.PENDING.value,
+        requested_by=actor_user_id,
+        requested_at=now,
+    )
+    session.add(approval)
+
+    plan.status = BudgetPlanStatus.PENDING_APPROVAL.value
+    plan.submitted_by = actor_user_id
+    plan.submitted_at = now
+    plan.approved_by = None
+    plan.approved_at = None
+    plan.rejection_reason = None
+    plan.row_version += 1
+
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="BUDGET_PLAN_SUBMITTED",
+        entity_type="budget_plan",
+        entity_id=plan.id,
+        before_data={"status": BudgetPlanStatus.DRAFT.value},
+        after_data={
+            "status": plan.status,
+            "submission_no": submission_no,
+            "version_no": version.version_no,
+            "total_amount": str(version.total_amount),
+        },
+    )
+    await session.commit()
+    await session.refresh(plan)
+    return await _response(session, plan)
+
+
+async def _pending_approval_for_update(
+    session: AsyncSession,
+    *,
+    plan_id: UUID,
+) -> BudgetPlanApproval:
+    approval = await session.scalar(
+        select(BudgetPlanApproval)
+        .where(
+            BudgetPlanApproval.budget_plan_id == plan_id,
+            BudgetPlanApproval.status == BudgetPlanApprovalStatus.PENDING.value,
+        )
+        .order_by(BudgetPlanApproval.submission_no.desc())
+        .with_for_update()
+    )
+    if approval is None:
+        raise conflict("Pengajuan rencana anggaran aktif tidak ditemukan.")
+    return approval
+
+
+async def _plan_for_decision(
+    session: AsyncSession,
+    *,
+    plan_id: UUID,
+    actor_user_id: UUID,
+) -> tuple[BudgetPlan, BudgetPlanVersion, BudgetPlanApproval]:
+    organization = await get_default_organization(session)
+    plan = await session.scalar(
+        select(BudgetPlan)
+        .where(BudgetPlan.id == plan_id, BudgetPlan.organization_id == organization.id)
+        .with_for_update()
+    )
+    if plan is None:
+        raise not_found("Rencana anggaran tidak ditemukan.")
+    await _assert_unit_permission(
+        session,
+        user_id=actor_user_id,
+        permission_code="budget_plans.approve",
+        unit_id=plan.organization_unit_id,
+    )
+    if plan.status != BudgetPlanStatus.PENDING_APPROVAL.value:
+        raise conflict("Hanya rencana anggaran PENDING_APPROVAL yang dapat diputuskan.")
+
+    fiscal_year = await _fiscal_year(session, organization.id, plan.fiscal_year_id)
+    if fiscal_year.status != FiscalYearStatus.PLANNING.value:
+        raise conflict("Keputusan rencana anggaran hanya dapat dilakukan saat tahun PLANNING.")
+
+    setting = await get_application_setting(session)
+    if not setting.allow_self_approval and plan.submitted_by == actor_user_id:
+        raise conflict("Self-approval tidak diperbolehkan oleh pengaturan aplikasi.")
+
+    approval = await _pending_approval_for_update(session, plan_id=plan.id)
+    version = await session.scalar(
+        select(BudgetPlanVersion).where(BudgetPlanVersion.id == approval.plan_version_id)
+    )
+    if version is None:
+        raise RuntimeError("Versi yang diajukan tidak ditemukan.")
+    if version.version_no != plan.current_version_no:
+        raise conflict("Versi rencana yang diajukan bukan versi aktif.")
+    return plan, version, approval
+
+
+async def approve_budget_plan(
+    session: AsyncSession,
+    *,
+    plan_id: UUID,
+    payload: BudgetPlanApproveRequest,
+    actor_user_id: UUID,
+) -> BudgetPlanResponse:
+    organization = await get_default_organization(session)
+    plan, version, approval = await _plan_for_decision(
+        session,
+        plan_id=plan_id,
+        actor_user_id=actor_user_id,
+    )
+    now = datetime.now(UTC)
+    note = payload.decision_note.strip() if payload.decision_note else None
+
+    approval.status = BudgetPlanApprovalStatus.APPROVED.value
+    approval.decided_by = actor_user_id
+    approval.decided_at = now
+    approval.decision_note = note
+
+    plan.status = BudgetPlanStatus.APPROVED.value
+    plan.approved_by = actor_user_id
+    plan.approved_at = now
+    plan.rejection_reason = None
+    plan.row_version += 1
+
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="BUDGET_PLAN_APPROVED",
+        entity_type="budget_plan",
+        entity_id=plan.id,
+        before_data={"status": BudgetPlanStatus.PENDING_APPROVAL.value},
+        after_data={
+            "status": plan.status,
+            "submission_no": approval.submission_no,
+            "version_no": version.version_no,
+            "total_amount": str(version.total_amount),
+            "decision_note": note,
+        },
+    )
+    await session.commit()
+    await session.refresh(plan)
+    return await _response(session, plan)
+
+
+async def reject_budget_plan(
+    session: AsyncSession,
+    *,
+    plan_id: UUID,
+    payload: BudgetPlanRejectRequest,
+    actor_user_id: UUID,
+) -> BudgetPlanResponse:
+    organization = await get_default_organization(session)
+    plan, version, approval = await _plan_for_decision(
+        session,
+        plan_id=plan_id,
+        actor_user_id=actor_user_id,
+    )
+    reason = payload.reason.strip()
+    if len(reason) < 3:
+        raise conflict("Alasan penolakan wajib diisi minimal 3 karakter.")
+    now = datetime.now(UTC)
+
+    approval.status = BudgetPlanApprovalStatus.REJECTED.value
+    approval.decided_by = actor_user_id
+    approval.decided_at = now
+    approval.decision_note = reason
+
+    plan.status = BudgetPlanStatus.REJECTED.value
+    plan.approved_by = None
+    plan.approved_at = None
+    plan.rejection_reason = reason
+    plan.row_version += 1
+
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="BUDGET_PLAN_REJECTED",
+        entity_type="budget_plan",
+        entity_id=plan.id,
+        before_data={"status": BudgetPlanStatus.PENDING_APPROVAL.value},
+        after_data={
+            "status": plan.status,
+            "submission_no": approval.submission_no,
+            "version_no": version.version_no,
+            "total_amount": str(version.total_amount),
+            "reason": reason,
+        },
+    )
+    await session.commit()
+    await session.refresh(plan)
+    return await _response(session, plan)
+
+
+async def revise_budget_plan(
+    session: AsyncSession,
+    *,
+    plan_id: UUID,
+    payload: BudgetPlanRevisionRequest,
+    actor_user_id: UUID,
+) -> BudgetPlanResponse:
+    organization = await get_default_organization(session)
+    plan = await session.scalar(
+        select(BudgetPlan)
+        .where(BudgetPlan.id == plan_id, BudgetPlan.organization_id == organization.id)
+        .with_for_update()
+    )
+    if plan is None:
+        raise not_found("Rencana anggaran tidak ditemukan.")
+    await _assert_unit_permission(
+        session,
+        user_id=actor_user_id,
+        permission_code="budget_plans.revise",
+        unit_id=plan.organization_unit_id,
+    )
+    if plan.status != BudgetPlanStatus.REJECTED.value:
+        raise conflict("Hanya rencana anggaran REJECTED yang dapat direvisi.")
+    if plan.row_version != payload.expected_row_version:
+        raise conflict("Rencana anggaran sudah berubah. Muat ulang sebelum merevisi.")
+
+    allocation, unit = await _allocation_with_unit(
+        session,
+        organization_id=organization.id,
+        allocation_id=plan.unit_allocation_id,
+        lock=True,
+    )
+    fiscal_year = await _fiscal_year(session, organization.id, plan.fiscal_year_id)
+    if fiscal_year.status != FiscalYearStatus.PLANNING.value:
+        raise conflict("Revisi hanya dapat dilakukan saat tahun anggaran PLANNING.")
+    if not unit.is_active or not unit.can_create_budget_plan:
+        raise conflict("Unit organisasi tidak diizinkan merevisi rencana anggaran.")
+
+    await _validated_lookup_maps(session, organization_id=organization.id, items=payload.items)
+    total = normalize_money(sum((item_amount(item) for item in payload.items), Decimal("0.00")))
+    if total > allocation.amount:
+        raise conflict("Total rencana anggaran tidak boleh melebihi alokasi unit.")
+
+    next_version_no = plan.current_version_no + 1
+    version = BudgetPlanVersion(
+        organization_id=organization.id,
+        budget_plan_id=plan.id,
+        version_no=next_version_no,
+        title=payload.title.strip(),
+        description=payload.description.strip() if payload.description else None,
+        total_amount=total,
+        created_by=actor_user_id,
+    )
+    session.add(version)
+    await session.flush()
+    await _replace_items(
+        session,
+        organization_id=organization.id,
+        version=version,
+        payload_items=payload.items,
+    )
+
+    before = {
+        "status": plan.status,
+        "version_no": plan.current_version_no,
+        "row_version": plan.row_version,
+        "rejection_reason": plan.rejection_reason,
+    }
+    plan.current_version_no = next_version_no
+    plan.status = BudgetPlanStatus.DRAFT.value
+    plan.submitted_by = None
+    plan.submitted_at = None
+    plan.approved_by = None
+    plan.approved_at = None
+    plan.rejection_reason = None
+    plan.row_version += 1
+
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="BUDGET_PLAN_REVISED",
+        entity_type="budget_plan",
+        entity_id=plan.id,
+        before_data=before,
+        after_data={
+            "status": plan.status,
+            "version_no": next_version_no,
+            "row_version": plan.row_version,
+            "total_amount": str(total),
+        },
+    )
+    await session.commit()
+    await session.refresh(plan)
+    return await _response(session, plan)
+
+
+async def list_budget_plan_approvals(
+    session: AsyncSession,
+    *,
+    plan_id: UUID,
+    user_id: UUID,
+) -> list[BudgetPlanApprovalResponse]:
+    organization = await get_default_organization(session)
+    plan = await session.scalar(
+        select(BudgetPlan).where(
+            BudgetPlan.id == plan_id,
+            BudgetPlan.organization_id == organization.id,
+        )
+    )
+    if plan is None:
+        raise not_found("Rencana anggaran tidak ditemukan.")
+    if not await _can_read_plan(session, user_id=user_id, plan=plan):
+        raise forbidden("Anda tidak memiliki scope untuk rencana anggaran ini.")
+
+    rows = (
+        await session.execute(
+            select(BudgetPlanApproval, BudgetPlanVersion.version_no)
+            .join(BudgetPlanVersion, BudgetPlanVersion.id == BudgetPlanApproval.plan_version_id)
+            .where(BudgetPlanApproval.budget_plan_id == plan.id)
+            .order_by(BudgetPlanApproval.submission_no.desc())
+        )
+    ).all()
+    return [_approval_response(item, version_no=version_no) for item, version_no in rows]
+
+
+async def list_pending_budget_plan_approvals(
+    session: AsyncSession,
+    *,
+    user_id: UUID,
+    fiscal_year_id: UUID | None = None,
+) -> list[BudgetPlanPendingApprovalResponse]:
+    organization = await get_default_organization(session)
+    statement = (
+        select(BudgetPlan, BudgetPlanApproval, BudgetPlanVersion)
+        .join(BudgetPlanApproval, BudgetPlanApproval.budget_plan_id == BudgetPlan.id)
+        .join(BudgetPlanVersion, BudgetPlanVersion.id == BudgetPlanApproval.plan_version_id)
+        .where(
+            BudgetPlan.organization_id == organization.id,
+            BudgetPlan.status == BudgetPlanStatus.PENDING_APPROVAL.value,
+            BudgetPlanApproval.status == BudgetPlanApprovalStatus.PENDING.value,
+        )
+        .order_by(BudgetPlanApproval.requested_at.asc())
+    )
+    if fiscal_year_id is not None:
+        statement = statement.where(BudgetPlan.fiscal_year_id == fiscal_year_id)
+    rows = (await session.execute(statement)).all()
+
+    result: list[BudgetPlanPendingApprovalResponse] = []
+    for plan, approval, version in rows:
+        if not await can_access_unit(
+            session,
+            user_id=user_id,
+            permission_code="budget_plans.approve",
+            unit_id=plan.organization_unit_id,
+        ):
+            continue
+        result.append(
+            BudgetPlanPendingApprovalResponse(
+                budget_plan=await _response(session, plan),
+                approval=_approval_response(approval, version_no=version.version_no),
+            )
+        )
+    return result

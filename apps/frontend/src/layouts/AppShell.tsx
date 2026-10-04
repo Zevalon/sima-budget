@@ -33,8 +33,8 @@ const navigation: NavigationItem[] = [
   { label: "Realisasi", to: "#", disabled: true },
   {
     label: "Approval",
-    to: "/app/approvals/annual-budgets",
-    permissionAnyOf: ["annual_budgets.approve"],
+    to: "/app/approvals",
+    permissionAnyOf: ["annual_budgets.approve", "budget_plans.approve"],
   },
   { label: "Laporan", to: "#", disabled: true },
   {

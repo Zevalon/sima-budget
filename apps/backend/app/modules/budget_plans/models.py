@@ -1,8 +1,10 @@
+from datetime import datetime
 from decimal import Decimal
 from uuid import UUID
 
 from sqlalchemy import (
     CheckConstraint,
+    DateTime,
     ForeignKey,
     Integer,
     Numeric,
@@ -50,6 +52,15 @@ class BudgetPlan(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     created_by: Mapped[UUID] = mapped_column(
         ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
     )
+    submitted_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    submitted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    approved_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    approved_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    rejection_reason: Mapped[str | None] = mapped_column(Text)
 
 
 class BudgetPlanVersion(UUIDPrimaryKeyMixin, TimestampMixin, Base):
@@ -103,3 +114,42 @@ class BudgetPlanItem(UUIDPrimaryKeyMixin, TimestampMixin, Base):
     unit_price: Mapped[Decimal] = mapped_column(Numeric(20, 2), nullable=False)
     amount: Mapped[Decimal] = mapped_column(Numeric(20, 2), nullable=False)
     notes: Mapped[str | None] = mapped_column(Text)
+
+
+class BudgetPlanApproval(UUIDPrimaryKeyMixin, TimestampMixin, Base):
+    __tablename__ = "budget_plan_approvals"
+    __table_args__ = (
+        CheckConstraint(
+            "status IN ('PENDING', 'APPROVED', 'REJECTED')",
+            name="ck_budget_plan_approval_status",
+        ),
+        CheckConstraint("submission_no >= 1", name="ck_budget_plan_approval_submission_positive"),
+        UniqueConstraint(
+            "budget_plan_id",
+            "submission_no",
+            name="uq_budget_plan_approval_submission",
+        ),
+    )
+
+    organization_id: Mapped[UUID] = mapped_column(
+        ForeignKey("organizations.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    budget_plan_id: Mapped[UUID] = mapped_column(
+        ForeignKey("budget_plans.id", ondelete="CASCADE"), nullable=False, index=True
+    )
+    plan_version_id: Mapped[UUID] = mapped_column(
+        ForeignKey("budget_plan_versions.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    submission_no: Mapped[int] = mapped_column(Integer, nullable=False)
+    status: Mapped[str] = mapped_column(
+        String(20), nullable=False, server_default="PENDING", index=True
+    )
+    requested_by: Mapped[UUID] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), nullable=False, index=True
+    )
+    requested_at: Mapped[datetime] = mapped_column(DateTime(timezone=True), nullable=False)
+    decided_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="SET NULL"), index=True
+    )
+    decided_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    decision_note: Mapped[str | None] = mapped_column(Text)

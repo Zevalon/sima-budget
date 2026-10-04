@@ -10,7 +10,12 @@ from app.modules.annual_budgets.models import AnnualBudget, AnnualBudgetApproval
 from app.modules.audit.models import AuditLog
 from app.modules.auth.models import UserSession
 from app.modules.budget_foundation.models import BudgetCategory, FiscalYear, UnitOfMeasure
-from app.modules.budget_plans.models import BudgetPlan, BudgetPlanItem, BudgetPlanVersion
+from app.modules.budget_plans.models import (
+    BudgetPlan,
+    BudgetPlanApproval,
+    BudgetPlanItem,
+    BudgetPlanVersion,
+)
 from app.modules.organizations.bootstrap_data import DEFAULT_UNIT_TYPES
 from app.modules.organizations.models import (
     Organization,
@@ -165,8 +170,10 @@ async def verify() -> None:
             )
         ).all()
         assert len(seeded_plans) == 2
+        statuses = {plan.plan_number: plan.status for plan in seeded_plans}
+        assert statuses["DEV-FY2026-IT-001"] == "PENDING_APPROVAL"
+        assert statuses["DEV-FY2026-FTI-001"] == "REJECTED"
         for plan in seeded_plans:
-            assert plan.status == "DRAFT"
             version = await session.scalar(
                 select(BudgetPlanVersion).where(
                     BudgetPlanVersion.budget_plan_id == plan.id,
@@ -181,6 +188,21 @@ async def verify() -> None:
             )
             assert int(item_count or 0) == 2
             assert version.total_amount > Decimal("0.00")
+            approval = await session.scalar(
+                select(BudgetPlanApproval).where(
+                    BudgetPlanApproval.budget_plan_id == plan.id,
+                    BudgetPlanApproval.submission_no == 1,
+                )
+            )
+            assert approval is not None
+            assert approval.plan_version_id == version.id
+            if plan.plan_number == "DEV-FY2026-IT-001":
+                assert approval.status == "PENDING"
+                assert approval.decided_by is None
+            else:
+                assert approval.status == "REJECTED"
+                assert approval.decided_by is not None
+                assert plan.rejection_reason is not None
 
         revoked_seed_session = await session.scalar(
             select(UserSession).where(UserSession.user_id == users_by_username["viewer"].id)

@@ -1,5 +1,7 @@
 export type BudgetPlanStatus = "DRAFT" | "PENDING_APPROVAL" | "APPROVED" | "REJECTED" | "CANCELLED";
 
+export type BudgetPlanApprovalStatus = "PENDING" | "APPROVED" | "REJECTED";
+
 export type BudgetPlanItem = {
   id: string;
   line_no: number;
@@ -34,8 +36,34 @@ export type BudgetPlan = {
   total_amount: string;
   items: BudgetPlanItem[];
   created_by: string;
+  submitted_by: string | null;
+  submitted_at: string | null;
+  approved_by: string | null;
+  approved_at: string | null;
+  rejection_reason: string | null;
   created_at: string;
   updated_at: string;
+};
+
+export type BudgetPlanApproval = {
+  id: string;
+  budget_plan_id: string;
+  plan_version_id: string;
+  submission_no: number;
+  version_no: number;
+  status: BudgetPlanApprovalStatus;
+  requested_by: string;
+  requested_at: string;
+  decided_by: string | null;
+  decided_at: string | null;
+  decision_note: string | null;
+  created_at: string;
+  updated_at: string;
+};
+
+export type BudgetPlanPendingApproval = {
+  budget_plan: BudgetPlan;
+  approval: BudgetPlanApproval;
 };
 
 export type BudgetPlanAllocationOption = {

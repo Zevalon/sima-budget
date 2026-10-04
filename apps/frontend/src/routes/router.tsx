@@ -6,6 +6,7 @@ import { RolesPage } from "../features/administration/pages/RolesPage";
 import { UsersPage } from "../features/administration/pages/UsersPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { AnnualBudgetApprovalPage } from "../features/annual-budgets/pages/AnnualBudgetApprovalPage";
+import { ApprovalHomePage } from "../features/approvals/pages/ApprovalHomePage";
 import { AnnualBudgetsPage } from "../features/annual-budgets/pages/AnnualBudgetsPage";
 import { PermissionRoute } from "../features/auth/PermissionRoute";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute";
@@ -14,6 +15,7 @@ import { FiscalYearsPage } from "../features/budget-foundation/pages/FiscalYears
 import { MasterDataHomePage } from "../features/budget-foundation/pages/MasterDataHomePage";
 import { UnitsOfMeasurePage } from "../features/budget-foundation/pages/UnitsOfMeasurePage";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
+import { BudgetPlanApprovalPage } from "../features/budget-plans/pages/BudgetPlanApprovalPage";
 import { BudgetPlansPage } from "../features/budget-plans/pages/BudgetPlansPage";
 import { AuditLogPage } from "../features/foundation/pages/AuditLogPage";
 import { SettingsPage } from "../features/foundation/pages/SettingsPage";
@@ -69,11 +71,29 @@ export const router = createBrowserRouter([
             ],
           },
           {
+            element: <PermissionRoute anyOf={["annual_budgets.approve", "budget_plans.approve"]} />,
+            children: [
+              {
+                path: "approvals",
+                element: <ApprovalHomePage />,
+              },
+            ],
+          },
+          {
             element: <PermissionRoute anyOf={["annual_budgets.approve"]} />,
             children: [
               {
                 path: "approvals/annual-budgets",
                 element: <AnnualBudgetApprovalPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["budget_plans.approve"]} />,
+            children: [
+              {
+                path: "approvals/budget-plans",
+                element: <BudgetPlanApprovalPage />,
               },
             ],
           },

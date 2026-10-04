@@ -6,7 +6,13 @@ import { BudgetPlansPage } from "../src/features/budget-plans/pages/BudgetPlansP
 
 vi.mock("../src/features/auth/auth-context", () => {
   const user = {
-    permissions: ["budget_plans.view", "budget_plans.create", "budget_plans.update"],
+    permissions: [
+      "budget_plans.view",
+      "budget_plans.create",
+      "budget_plans.update",
+      "budget_plans.submit",
+      "budget_plans.revise",
+    ],
   };
   return { useAuth: () => ({ user }) };
 });
@@ -34,8 +40,11 @@ vi.mock("../src/features/budget-plans/api/budgetPlans", () => ({
     units_of_measure: [{ id: "uom-unit", code: "UNIT", name: "Unit" }],
   }),
   listBudgetPlans: vi.fn().mockResolvedValue([]),
+  listBudgetPlanApprovals: vi.fn().mockResolvedValue([]),
   createBudgetPlan: vi.fn(),
   updateBudgetPlan: vi.fn(),
+  reviseBudgetPlan: vi.fn(),
+  submitBudgetPlan: vi.fn(),
 }));
 
 describe("BudgetPlansPage", () => {
