@@ -14,6 +14,7 @@ from app.modules.budget_foundation.models import FiscalYear
 from app.modules.budget_foundation.schemas import FiscalYearStatus
 from app.modules.budget_plans.models import BudgetPlan, BudgetPlanVersion
 from app.modules.organizations.models import OrganizationUnit
+from app.modules.realizations.models import Realization
 from app.modules.unit_allocations.models import UnitAllocation
 from app.modules.unit_allocations.schemas import (
     UnitAllocationCreateRequest,
@@ -44,8 +45,11 @@ def allocation_response(
     unit_name: str,
     committed_amount: Decimal,
     draft_pipeline_amount: Decimal,
+    realized_amount: Decimal,
+    realization_draft_pipeline_amount: Decimal,
 ) -> UnitAllocationResponse:
     available_amount = normalize_amount(max(item.amount - committed_amount, ZERO))
+    remaining_to_realize_amount = normalize_amount(max(committed_amount - realized_amount, ZERO))
     return UnitAllocationResponse(
         id=item.id,
         fiscal_year_id=item.fiscal_year_id,
@@ -57,6 +61,9 @@ def allocation_response(
         committed_amount=committed_amount,
         draft_pipeline_amount=draft_pipeline_amount,
         available_amount=available_amount,
+        realized_amount=realized_amount,
+        realization_draft_pipeline_amount=realization_draft_pipeline_amount,
+        remaining_to_realize_amount=remaining_to_realize_amount,
         notes=item.notes,
         version=item.version,
         created_at=item.created_at,
@@ -103,6 +110,41 @@ async def _allocation_plan_totals(
         statuses=("DRAFT", "PENDING_APPROVAL"),
     )
     return committed, pipeline
+
+
+async def _realization_total_for_allocation(
+    session: AsyncSession,
+    *,
+    allocation_id: UUID,
+    statuses: tuple[str, ...],
+) -> Decimal:
+    value = await session.scalar(
+        select(func.sum(Realization.amount))
+        .join(BudgetPlan, BudgetPlan.id == Realization.budget_plan_id)
+        .where(
+            BudgetPlan.unit_allocation_id == allocation_id,
+            Realization.status.in_(statuses),
+        )
+    )
+    return normalize_amount(value if value is not None else ZERO)
+
+
+async def _allocation_realization_totals(
+    session: AsyncSession,
+    *,
+    allocation_id: UUID,
+) -> tuple[Decimal, Decimal]:
+    realized = await _realization_total_for_allocation(
+        session,
+        allocation_id=allocation_id,
+        statuses=("POSTED",),
+    )
+    pipeline = await _realization_total_for_allocation(
+        session,
+        allocation_id=allocation_id,
+        statuses=("DRAFT",),
+    )
+    return realized, pipeline
 
 
 async def _fiscal_year(
@@ -217,6 +259,10 @@ async def get_unit_allocation_overview(
             session,
             allocation_id=item.id,
         )
+        realized, realization_pipeline = await _allocation_realization_totals(
+            session,
+            allocation_id=item.id,
+        )
         allocations.append(
             allocation_response(
                 item,
@@ -224,12 +270,19 @@ async def get_unit_allocation_overview(
                 unit_name=unit_name,
                 committed_amount=committed,
                 draft_pipeline_amount=pipeline,
+                realized_amount=realized,
+                realization_draft_pipeline_amount=realization_pipeline,
             )
         )
     allocated = normalize_amount(sum((item.amount for item in allocations), ZERO))
     committed = normalize_amount(sum((item.committed_amount for item in allocations), ZERO))
     pipeline = normalize_amount(sum((item.draft_pipeline_amount for item in allocations), ZERO))
     available = normalize_amount(max(allocated - committed, ZERO))
+    realized = normalize_amount(sum((item.realized_amount for item in allocations), ZERO))
+    realization_pipeline = normalize_amount(
+        sum((item.realization_draft_pipeline_amount for item in allocations), ZERO)
+    )
+    remaining_to_realize = normalize_amount(max(committed - realized, ZERO))
     budget_amount = normalize_amount(annual_budget.amount) if annual_budget is not None else ZERO
     remaining = normalize_amount(max(budget_amount - allocated, ZERO))
 
@@ -247,6 +300,9 @@ async def get_unit_allocation_overview(
         committed_amount=committed,
         draft_pipeline_amount=pipeline,
         available_amount=available,
+        realized_amount=realized,
+        realization_draft_pipeline_amount=realization_pipeline,
+        remaining_to_realize_amount=remaining_to_realize,
         allocations=allocations,
     )
 
@@ -327,12 +383,17 @@ async def create_unit_allocation(
     await session.commit()
     await session.refresh(item)
     committed, pipeline = await _allocation_plan_totals(session, allocation_id=item.id)
+    realized, realization_pipeline = await _allocation_realization_totals(
+        session, allocation_id=item.id
+    )
     return allocation_response(
         item,
         unit_code=unit.code,
         unit_name=unit.name,
         committed_amount=committed,
         draft_pipeline_amount=pipeline,
+        realized_amount=realized,
+        realization_draft_pipeline_amount=realization_pipeline,
     )
 
 
@@ -435,10 +496,15 @@ async def update_unit_allocation(
     await session.commit()
     await session.refresh(item)
     committed, pipeline = await _allocation_plan_totals(session, allocation_id=item.id)
+    realized, realization_pipeline = await _allocation_realization_totals(
+        session, allocation_id=item.id
+    )
     return allocation_response(
         item,
         unit_code=unit.code,
         unit_name=unit.name,
         committed_amount=committed,
         draft_pipeline_amount=pipeline,
+        realized_amount=realized,
+        realization_draft_pipeline_amount=realization_pipeline,
     )

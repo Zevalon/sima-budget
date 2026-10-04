@@ -187,6 +187,22 @@ export function UnitAllocationsPage() {
               <span className="muted">Available untuk Plan</span>
               <strong>{formatCurrency(activeOverview?.available_amount ?? "0.00")}</strong>
             </div>
+            <div>
+              <span className="muted">Realized</span>
+              <strong>{formatCurrency(activeOverview?.realized_amount ?? "0.00")}</strong>
+            </div>
+            <div>
+              <span className="muted">Draft Realisasi</span>
+              <strong>
+                {formatCurrency(activeOverview?.realization_draft_pipeline_amount ?? "0.00")}
+              </strong>
+            </div>
+            <div>
+              <span className="muted">Sisa Direalisasi</span>
+              <strong>
+                {formatCurrency(activeOverview?.remaining_to_realize_amount ?? "0.00")}
+              </strong>
+            </div>
           </section>
 
           {loading ? <p className="muted">Memuat alokasi...</p> : null}
@@ -294,6 +310,15 @@ export function UnitAllocationsPage() {
                           </span>
                           <span className="muted">
                             Pipeline {formatCurrency(item.draft_pipeline_amount)}
+                          </span>
+                          <span className="muted">
+                            Realized {formatCurrency(item.realized_amount)}
+                          </span>
+                          <span className="muted">
+                            Draft Realisasi {formatCurrency(item.realization_draft_pipeline_amount)}
+                          </span>
+                          <span className="muted">
+                            Sisa Direalisasi {formatCurrency(item.remaining_to_realize_amount)}
                           </span>
                         </div>
                       </div>

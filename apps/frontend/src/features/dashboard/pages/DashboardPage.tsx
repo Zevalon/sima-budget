@@ -125,6 +125,25 @@ export function DashboardPage() {
               <small>DRAFT + PENDING_APPROVAL, belum committed</small>
             </article>
             <article className="panel dashboard-metric">
+              <span className="muted">Realized</span>
+              <strong>{formatCurrency(activeOverview?.realized_amount ?? "0.00")}</strong>
+              <small>Realisasi POSTED terhadap committed plan</small>
+            </article>
+            <article className="panel dashboard-metric">
+              <span className="muted">Draft Realisasi</span>
+              <strong>
+                {formatCurrency(activeOverview?.realization_draft_pipeline_amount ?? "0.00")}
+              </strong>
+              <small>Pipeline realisasi yang belum diposting</small>
+            </article>
+            <article className="panel dashboard-metric">
+              <span className="muted">Sisa Direalisasi</span>
+              <strong>
+                {formatCurrency(activeOverview?.remaining_to_realize_amount ?? "0.00")}
+              </strong>
+              <small>Committed dikurangi realized</small>
+            </article>
+            <article className="panel dashboard-metric">
               <span className="muted">Unit Teralokasi</span>
               <strong>{activeOverview?.allocations.length ?? 0}</strong>
               <small>Unit dengan alokasi pada {selectedFiscalYear.code}</small>
@@ -141,14 +160,19 @@ export function DashboardPage() {
                 <li>Alokasi unit tercatat: {activeOverview?.allocations.length ?? 0}</li>
                 <li>Committed: {formatCurrency(activeOverview?.committed_amount ?? "0.00")}</li>
                 <li>Available: {formatCurrency(activeOverview?.available_amount ?? "0.00")}</li>
+                <li>Realized: {formatCurrency(activeOverview?.realized_amount ?? "0.00")}</li>
+                <li>
+                  Sisa direalisasi:{" "}
+                  {formatCurrency(activeOverview?.remaining_to_realize_amount ?? "0.00")}
+                </li>
               </ul>
             </article>
             <article className="panel">
               <span className="muted">Tahap Berikutnya</span>
-              <h2>Rencana Anggaran Unit</h2>
+              <h2>Monitoring Eksekusi Anggaran</h2>
               <p>
-                Rencana APPROVED sekarang menjadi commitment resmi terhadap alokasi unit. Draft dan
-                pengajuan yang belum disetujui tetap dipantau sebagai pipeline terpisah.
+                Commitment rencana APPROVED sekarang dapat dibandingkan langsung dengan realisasi
+                POSTED dan sisa yang masih dapat direalisasikan.
               </p>
             </article>
           </section>

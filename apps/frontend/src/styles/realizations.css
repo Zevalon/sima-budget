@@ -150,3 +150,32 @@
   background: #fef3f2;
   color: #b42318;
 }
+
+.realization-monitoring-list {
+  display: grid;
+  gap: 10px;
+}
+
+.realization-monitoring-row {
+  display: grid;
+  grid-template-columns: minmax(220px, 1.5fr) repeat(4, minmax(120px, 1fr));
+  gap: 12px;
+  align-items: center;
+  padding: 14px 0;
+  border-top: 1px solid #eaecf0;
+}
+
+.realization-monitoring-row:first-child {
+  border-top: 0;
+}
+
+.realization-monitoring-row > div {
+  display: grid;
+  gap: 4px;
+}
+
+@media (max-width: 1000px) {
+  .realization-monitoring-row {
+    grid-template-columns: 1fr 1fr;
+  }
+}

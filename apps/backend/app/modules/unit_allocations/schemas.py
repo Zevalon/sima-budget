@@ -19,6 +19,9 @@ class UnitAllocationResponse(BaseModel):
     committed_amount: Decimal
     draft_pipeline_amount: Decimal
     available_amount: Decimal
+    realized_amount: Decimal
+    realization_draft_pipeline_amount: Decimal
+    remaining_to_realize_amount: Decimal
     notes: str | None
     version: int
     created_at: datetime
@@ -50,4 +53,7 @@ class UnitAllocationOverviewResponse(BaseModel):
     committed_amount: Decimal
     draft_pipeline_amount: Decimal
     available_amount: Decimal
+    realized_amount: Decimal
+    realization_draft_pipeline_amount: Decimal
+    remaining_to_realize_amount: Decimal
     allocations: list[UnitAllocationResponse]

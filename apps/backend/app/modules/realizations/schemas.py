@@ -66,6 +66,7 @@ class RealizationPlanOption(BaseModel):
     realized_amount: Decimal
     draft_pipeline_amount: Decimal
     remaining_amount: Decimal
+    utilization_percent: Decimal
 
 
 class RealizationContextResponse(BaseModel):
@@ -76,6 +77,7 @@ class RealizationContextResponse(BaseModel):
     scope_realized_amount: Decimal
     scope_draft_pipeline_amount: Decimal
     scope_remaining_amount: Decimal
+    scope_utilization_percent: Decimal
     plans: list[RealizationPlanOption]
 
 

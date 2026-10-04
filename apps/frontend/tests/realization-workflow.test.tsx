@@ -67,6 +67,7 @@ vi.mock("../src/features/realizations/api/realizations", () => {
       scope_approved_amount: "1000.00",
       scope_realized_amount: "250.00",
       scope_draft_pipeline_amount: "0.00",
+      scope_utilization_percent: "25.00",
       scope_remaining_amount: "750.00",
       plans: [],
     }),
