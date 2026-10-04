@@ -27,6 +27,10 @@ vi.mock("../src/features/budget-plans/api/budgetPlans", () => ({
     fiscal_year_id: "fy-2026",
     fiscal_year_code: "FY2026",
     fiscal_year_status: "PLANNING",
+    scope_allocation_amount: "120000000000.00",
+    scope_committed_amount: "30000000000.00",
+    scope_draft_pipeline_amount: "15000000000.00",
+    scope_available_amount: "90000000000.00",
     allocations: [
       {
         unit_allocation_id: "alloc-it",
@@ -59,6 +63,8 @@ describe("BudgetPlansPage", () => {
     );
 
     expect(await screen.findByText("Buat Draft Rencana Anggaran")).toBeInTheDocument();
+    expect(screen.getByText("Rp 120.000.000.000,00")).toBeInTheDocument();
+    expect(screen.getByText("Rp 90.000.000.000,00")).toBeInTheDocument();
     expect(screen.getByText("0 rencana dalam scope Anda")).toBeInTheDocument();
   });
 });

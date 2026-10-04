@@ -48,10 +48,13 @@ export function updateBudgetPlan(
   );
 }
 
-export function submitBudgetPlan(planId: string): Promise<BudgetPlan> {
+export function submitBudgetPlan(planId: string, expectedRowVersion: number): Promise<BudgetPlan> {
   return apiRequest<BudgetPlan>(
     `/budget-plans/${planId}/submit`,
-    { method: "POST" },
+    {
+      method: "POST",
+      body: JSON.stringify({ expected_row_version: expectedRowVersion }),
+    },
     { csrf: true },
   );
 }
@@ -85,19 +88,32 @@ export function listPendingBudgetPlanApprovals(
 
 export function approveBudgetPlan(
   planId: string,
-  decisionNote: string | null,
+  payload: {
+    expected_row_version: number;
+    expected_submission_no: number;
+    expected_version_no: number;
+    decision_note: string | null;
+  },
 ): Promise<BudgetPlan> {
   return apiRequest<BudgetPlan>(
     `/budget-plans/${planId}/approve`,
-    { method: "POST", body: JSON.stringify({ decision_note: decisionNote }) },
+    { method: "POST", body: JSON.stringify(payload) },
     { csrf: true },
   );
 }
 
-export function rejectBudgetPlan(planId: string, reason: string): Promise<BudgetPlan> {
+export function rejectBudgetPlan(
+  planId: string,
+  payload: {
+    expected_row_version: number;
+    expected_submission_no: number;
+    expected_version_no: number;
+    reason: string;
+  },
+): Promise<BudgetPlan> {
   return apiRequest<BudgetPlan>(
     `/budget-plans/${planId}/reject`,
-    { method: "POST", body: JSON.stringify({ reason }) },
+    { method: "POST", body: JSON.stringify(payload) },
     { csrf: true },
   );
 }

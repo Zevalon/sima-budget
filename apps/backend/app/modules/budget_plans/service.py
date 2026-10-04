@@ -32,6 +32,7 @@ from app.modules.budget_plans.schemas import (
     BudgetPlanResponse,
     BudgetPlanRevisionRequest,
     BudgetPlanStatus,
+    BudgetPlanSubmitRequest,
     BudgetPlanUpdateRequest,
 )
 from app.modules.organizations.models import OrganizationUnit
@@ -366,10 +367,26 @@ async def get_budget_plan_context(
             .order_by(UnitOfMeasure.code.asc())
         )
     ).all()
+    scope_allocation = normalize_money(
+        sum((item.allocation_amount for item in allocations), Decimal("0.00"))
+    )
+    scope_committed = normalize_money(
+        sum((item.committed_amount for item in allocations), Decimal("0.00"))
+    )
+    scope_pipeline = normalize_money(
+        sum((item.draft_pipeline_amount for item in allocations), Decimal("0.00"))
+    )
+    scope_available = normalize_money(
+        sum((item.available_amount for item in allocations), Decimal("0.00"))
+    )
     return BudgetPlanContextResponse(
         fiscal_year_id=fiscal_year.id,
         fiscal_year_code=fiscal_year.code,
         fiscal_year_status=FiscalYearStatus(fiscal_year.status),
+        scope_allocation_amount=scope_allocation,
+        scope_committed_amount=scope_committed,
+        scope_draft_pipeline_amount=scope_pipeline,
+        scope_available_amount=scope_available,
         allocations=allocations,
         budget_categories=[
             BudgetPlanLookupOption(id=x.id, code=x.code, name=x.name) for x in categories
@@ -663,6 +680,7 @@ async def submit_budget_plan(
     session: AsyncSession,
     *,
     plan_id: UUID,
+    payload: BudgetPlanSubmitRequest,
     actor_user_id: UUID,
 ) -> BudgetPlanResponse:
     organization = await get_default_organization(session)
@@ -681,6 +699,8 @@ async def submit_budget_plan(
     )
     if plan.status != BudgetPlanStatus.DRAFT.value:
         raise conflict("Hanya rencana anggaran DRAFT yang dapat diajukan.")
+    if plan.row_version != payload.expected_row_version:
+        raise conflict("Rencana anggaran sudah berubah. Muat ulang sebelum mengajukan.")
 
     fiscal_year = await _fiscal_year(session, organization.id, plan.fiscal_year_id)
     if fiscal_year.status != FiscalYearStatus.PLANNING.value:
@@ -773,6 +793,9 @@ async def _plan_for_decision(
     session: AsyncSession,
     *,
     plan_id: UUID,
+    expected_row_version: int,
+    expected_submission_no: int,
+    expected_version_no: int,
     actor_user_id: UUID,
 ) -> tuple[BudgetPlan, BudgetPlanVersion, BudgetPlanApproval]:
     organization = await get_default_organization(session)
@@ -791,6 +814,8 @@ async def _plan_for_decision(
     )
     if plan.status != BudgetPlanStatus.PENDING_APPROVAL.value:
         raise conflict("Hanya rencana anggaran PENDING_APPROVAL yang dapat diputuskan.")
+    if plan.row_version != expected_row_version:
+        raise conflict("Pengajuan sudah berubah. Muat ulang inbox approval sebelum memutuskan.")
 
     fiscal_year = await _fiscal_year(session, organization.id, plan.fiscal_year_id)
     if fiscal_year.status != FiscalYearStatus.PLANNING.value:
@@ -801,6 +826,8 @@ async def _plan_for_decision(
         raise conflict("Self-approval tidak diperbolehkan oleh pengaturan aplikasi.")
 
     approval = await _pending_approval_for_update(session, plan_id=plan.id)
+    if approval.submission_no != expected_submission_no:
+        raise conflict("Nomor pengajuan sudah berubah. Muat ulang inbox approval.")
     version = await session.scalar(
         select(BudgetPlanVersion).where(BudgetPlanVersion.id == approval.plan_version_id)
     )
@@ -808,6 +835,8 @@ async def _plan_for_decision(
         raise RuntimeError("Versi yang diajukan tidak ditemukan.")
     if version.version_no != plan.current_version_no:
         raise conflict("Versi rencana yang diajukan bukan versi aktif.")
+    if version.version_no != expected_version_no:
+        raise conflict("Versi yang ditinjau sudah berubah. Muat ulang inbox approval.")
     return plan, version, approval
 
 
@@ -822,6 +851,9 @@ async def approve_budget_plan(
     plan, version, approval = await _plan_for_decision(
         session,
         plan_id=plan_id,
+        expected_row_version=payload.expected_row_version,
+        expected_submission_no=payload.expected_submission_no,
+        expected_version_no=payload.expected_version_no,
         actor_user_id=actor_user_id,
     )
     allocation, _ = await _allocation_with_unit(
@@ -888,6 +920,9 @@ async def reject_budget_plan(
     plan, version, approval = await _plan_for_decision(
         session,
         plan_id=plan_id,
+        expected_row_version=payload.expected_row_version,
+        expected_submission_no=payload.expected_submission_no,
+        expected_version_no=payload.expected_version_no,
         actor_user_id=actor_user_id,
     )
     reason = payload.reason.strip()

@@ -2959,6 +2959,16 @@
             }
           }
         ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetPlanSubmitRequest"
+              }
+            }
+          }
+        },
         "responses": {
           "200": {
             "description": "Successful Response",
@@ -4622,6 +4632,21 @@
       },
       "BudgetPlanApproveRequest": {
         "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          },
+          "expected_submission_no": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Submission No"
+          },
+          "expected_version_no": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version No"
+          },
           "decision_note": {
             "anyOf": [
               {
@@ -4636,6 +4661,11 @@
           }
         },
         "type": "object",
+        "required": [
+          "expected_row_version",
+          "expected_submission_no",
+          "expected_version_no"
+        ],
         "title": "BudgetPlanApproveRequest"
       },
       "BudgetPlanContextResponse": {
@@ -4651,6 +4681,26 @@
           },
           "fiscal_year_status": {
             "$ref": "#/components/schemas/FiscalYearStatus"
+          },
+          "scope_allocation_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Allocation Amount"
+          },
+          "scope_committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Committed Amount"
+          },
+          "scope_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Draft Pipeline Amount"
+          },
+          "scope_available_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Available Amount"
           },
           "allocations": {
             "items": {
@@ -4679,6 +4729,10 @@
           "fiscal_year_id",
           "fiscal_year_code",
           "fiscal_year_status",
+          "scope_allocation_amount",
+          "scope_committed_amount",
+          "scope_draft_pipeline_amount",
+          "scope_available_amount",
           "allocations",
           "budget_categories",
           "units_of_measure"
@@ -4923,6 +4977,21 @@
       },
       "BudgetPlanRejectRequest": {
         "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          },
+          "expected_submission_no": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Submission No"
+          },
+          "expected_version_no": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version No"
+          },
           "reason": {
             "type": "string",
             "maxLength": 2000,
@@ -4932,6 +5001,9 @@
         },
         "type": "object",
         "required": [
+          "expected_row_version",
+          "expected_submission_no",
+          "expected_version_no",
           "reason"
         ],
         "title": "BudgetPlanRejectRequest"
@@ -5192,6 +5264,20 @@
           "CANCELLED"
         ],
         "title": "BudgetPlanStatus"
+      },
+      "BudgetPlanSubmitRequest": {
+        "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_row_version"
+        ],
+        "title": "BudgetPlanSubmitRequest"
       },
       "BudgetPlanUpdateRequest": {
         "properties": {

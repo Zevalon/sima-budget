@@ -90,6 +90,10 @@ export type BudgetPlanContext = {
   fiscal_year_id: string;
   fiscal_year_code: string;
   fiscal_year_status: "DRAFT" | "PLANNING" | "ACTIVE" | "CLOSED" | "ARCHIVED";
+  scope_allocation_amount: string;
+  scope_committed_amount: string;
+  scope_draft_pipeline_amount: string;
+  scope_available_amount: string;
   allocations: BudgetPlanAllocationOption[];
   budget_categories: BudgetPlanLookupOption[];
   units_of_measure: BudgetPlanLookupOption[];

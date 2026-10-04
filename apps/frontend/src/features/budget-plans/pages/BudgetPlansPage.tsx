@@ -228,7 +228,7 @@ export function BudgetPlansPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await submitBudgetPlan(plan.id);
+      await submitBudgetPlan(plan.id, plan.row_version);
       setSuccessMessage(`${plan.plan_number} berhasil diajukan untuk persetujuan.`);
       await reload();
     } catch (error: unknown) {
@@ -262,20 +262,22 @@ export function BudgetPlansPage() {
         <>
           <section className="panel plan-summary">
             <div>
-              <span className="muted">Tahun Anggaran</span>
-              <strong>{selectedFiscalYear.code}</strong>
-            </div>
-            <div>
-              <span className="muted">Status</span>
-              <strong>{selectedFiscalYear.status}</strong>
-            </div>
-            <div>
               <span className="muted">Alokasi dalam Scope</span>
-              <strong>{activeContext?.allocations.length ?? 0} unit</strong>
+              <strong>{formatCurrency(activeContext?.scope_allocation_amount ?? "0.00")}</strong>
             </div>
             <div>
-              <span className="muted">Draft Terlihat</span>
-              <strong>{plans.length} rencana</strong>
+              <span className="muted">Committed</span>
+              <strong>{formatCurrency(activeContext?.scope_committed_amount ?? "0.00")}</strong>
+            </div>
+            <div>
+              <span className="muted">Draft Pipeline</span>
+              <strong>
+                {formatCurrency(activeContext?.scope_draft_pipeline_amount ?? "0.00")}
+              </strong>
+            </div>
+            <div>
+              <span className="muted">Available</span>
+              <strong>{formatCurrency(activeContext?.scope_available_amount ?? "0.00")}</strong>
             </div>
           </section>
 
@@ -426,6 +428,20 @@ export function BudgetPlansPage() {
               <h2>Belum Ada Alokasi yang Dapat Digunakan</h2>
               <p className="muted">
                 User ini belum memiliki alokasi unit dalam scope untuk Tahun Anggaran tersebut.
+              </p>
+            </section>
+          ) : null}
+
+          {activeContext &&
+          canCreate &&
+          canMutate &&
+          activeContext.allocations.length > 0 &&
+          !hasLookups ? (
+            <section className="panel">
+              <h2>Master Data Rencana Belum Lengkap</h2>
+              <p className="muted">
+                Aktifkan minimal satu Kategori Anggaran dan satu Satuan sebelum membuat Rencana
+                Anggaran.
               </p>
             </section>
           ) : null}

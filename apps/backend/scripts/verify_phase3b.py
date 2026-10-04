@@ -311,21 +311,29 @@ async def verify() -> None:
                 },
             )
             assert created.status_code == 201, created.text
-            plan_id = created.json()["id"]
+            created_data = created.json()
+            plan_id = created_data["id"]
 
             submitted = await pic_client.post(
                 f"/api/v1/budget-plans/{plan_id}/submit",
                 headers=pic_headers,
+                json={"expected_row_version": created_data["row_version"]},
             )
             assert submitted.status_code == 200, submitted.text
-            assert submitted.json()["status"] == "PENDING_APPROVAL"
-            assert submitted.json()["submitted_by"] is not None
+            submitted_data = submitted.json()
+            assert submitted_data["status"] == "PENDING_APPROVAL"
+            assert submitted_data["submitted_by"] is not None
 
             await grant_pic_approver_role()
             self_approve = await pic_client.post(
                 f"/api/v1/budget-plans/{plan_id}/approve",
                 headers=pic_headers,
-                json={"decision_note": "Should be blocked"},
+                json={
+                    "expected_row_version": submitted_data["row_version"],
+                    "expected_submission_no": 1,
+                    "expected_version_no": 1,
+                    "decision_note": "Should be blocked",
+                },
             )
             assert self_approve.status_code == 409, self_approve.text
 
@@ -347,19 +355,30 @@ async def verify() -> None:
             )
             assert pending.status_code == 200, pending.text
             assert len(pending.json()) == 1
-            assert pending.json()[0]["budget_plan"]["id"] == plan_id
-            assert pending.json()[0]["approval"]["version_no"] == 1
+            pending_item = pending.json()[0]
+            assert pending_item["budget_plan"]["id"] == plan_id
+            assert pending_item["approval"]["version_no"] == 1
 
             no_csrf = await approver_client.post(
                 f"/api/v1/budget-plans/{plan_id}/reject",
-                json={"reason": "Needs revision"},
+                json={
+                    "expected_row_version": pending_item["budget_plan"]["row_version"],
+                    "expected_submission_no": pending_item["approval"]["submission_no"],
+                    "expected_version_no": pending_item["approval"]["version_no"],
+                    "reason": "Needs revision",
+                },
             )
             assert no_csrf.status_code == 403, no_csrf.text
 
             rejected = await approver_client.post(
                 f"/api/v1/budget-plans/{plan_id}/reject",
                 headers=approver_headers,
-                json={"reason": "Perbaiki rincian item"},
+                json={
+                    "expected_row_version": pending_item["budget_plan"]["row_version"],
+                    "expected_submission_no": pending_item["approval"]["submission_no"],
+                    "expected_version_no": pending_item["approval"]["version_no"],
+                    "reason": "Perbaiki rincian item",
+                },
             )
             assert rejected.status_code == 200, rejected.text
             rejected_data = rejected.json()
@@ -406,9 +425,11 @@ async def verify() -> None:
             resubmitted = await pic_client.post(
                 f"/api/v1/budget-plans/{plan_id}/submit",
                 headers=pic_headers,
+                json={"expected_row_version": revised_data["row_version"]},
             )
             assert resubmitted.status_code == 200, resubmitted.text
-            assert resubmitted.json()["status"] == "PENDING_APPROVAL"
+            resubmitted_data = resubmitted.json()
+            assert resubmitted_data["status"] == "PENDING_APPROVAL"
 
         async with AsyncClient(
             transport=transport,
@@ -425,7 +446,12 @@ async def verify() -> None:
             approved = await approver_client.post(
                 f"/api/v1/budget-plans/{plan_id}/approve",
                 headers=approver_headers,
-                json={"decision_note": "Rencana unit disetujui"},
+                json={
+                    "expected_row_version": resubmitted_data["row_version"],
+                    "expected_submission_no": 2,
+                    "expected_version_no": 2,
+                    "decision_note": "Rencana unit disetujui",
+                },
             )
             assert approved.status_code == 200, approved.text
             approved_data = approved.json()

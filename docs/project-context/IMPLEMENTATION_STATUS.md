@@ -6,25 +6,22 @@
 - Phase 1 — Foundation
 - Phase 2 — Budget Foundation
 - Phase 3A — Budget Plan Core & Versioned Items
+- Phase 3B — Budget Plan Submission & Approval
+- Phase 3C — Commitment & Available Budget Controls
 
 ## Current
 
-### Phase 3B — Budget Plan Submission & Approval
+### Phase 3D — Budget Plan Hardening & Phase 3 Completion
 
 Implementation adds:
 
-- Budget Plan submission;
-- exact-version approval records;
-- Unit Approver scoped inbox;
-- approve/reject;
-- self-approval guard;
-- rejected-plan revision to a new version;
-- resubmission and approval history;
-- Phase 3B development seed scenarios.
+- optimistic/stale protection on submit;
+- exact approval identity using row version + submission number + plan version;
+- protection against stale approval tabs acting on a later resubmission;
+- scoped Allocation / Committed / Draft Pipeline / Available summary;
+- clearer plan creation empty states;
+- final Phase 3 regression gate.
 
-## Next after Phase 3B validation
+## Next after Phase 3D validation
 
-Phase 3C — Commitment & Available Budget Controls.
-
-Phase 3C will make approved plans consume Unit Allocation and add aggregate/concurrency-safe
-`Committed` and `Available` calculations.
+Create CP-08 — Phase 3 Budget Plan Complete, then begin Phase 4 / next roadmap domain.
