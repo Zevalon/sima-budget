@@ -25,7 +25,11 @@ const navigation: NavigationItem[] = [
     to: "/app/unit-allocations",
     permissionAnyOf: ["unit_allocations.view"],
   },
-  { label: "Rencana Anggaran", to: "#", disabled: true },
+  {
+    label: "Rencana Anggaran",
+    to: "/app/budget-plans",
+    permissionAnyOf: ["budget_plans.view"],
+  },
   { label: "Realisasi", to: "#", disabled: true },
   {
     label: "Approval",

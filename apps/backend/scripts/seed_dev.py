@@ -13,6 +13,7 @@ from app.modules.annual_budgets.models import AnnualBudget, AnnualBudgetApproval
 from app.modules.audit.models import AuditLog
 from app.modules.auth.models import UserSession
 from app.modules.budget_foundation.models import BudgetCategory, FiscalYear, UnitOfMeasure
+from app.modules.budget_plans.models import BudgetPlan, BudgetPlanItem, BudgetPlanVersion
 from app.modules.organizations.models import (
     Organization,
     OrganizationUnit,
@@ -446,6 +447,9 @@ async def apply_seed() -> None:
             )
         )
         await session.execute(
+            delete(BudgetPlan).where(BudgetPlan.organization_id == organization.id)
+        )
+        await session.execute(
             delete(UnitAllocation).where(UnitAllocation.annual_budget_id.in_(budget_ids))
         )
 
@@ -516,6 +520,128 @@ async def apply_seed() -> None:
             allocations.append(item)
         session.add_all(allocations)
         await session.flush()
+
+        allocations_by_key = {
+            (fy_code, unit_code): allocation
+            for (fy_code, unit_code, _, _), allocation in zip(
+                allocation_specs, allocations, strict=True
+            )
+        }
+        categories_by_code = {
+            item.code: item
+            for item in (
+                await session.scalars(
+                    select(BudgetCategory).where(BudgetCategory.organization_id == organization.id)
+                )
+            ).all()
+        }
+        uoms_by_code = {
+            item.code: item
+            for item in (
+                await session.scalars(
+                    select(UnitOfMeasure).where(UnitOfMeasure.organization_id == organization.id)
+                )
+            ).all()
+        }
+
+        plan_specs = (
+            (
+                "DEV-FY2026-IT-001",
+                "IT",
+                "itpic",
+                "Modernisasi Infrastruktur TI",
+                "Draft baseline untuk pengujian rencana anggaran unit TI.",
+                (
+                    (
+                        "IT",
+                        "LICENSE",
+                        "Lisensi perangkat lunak institusi",
+                        Decimal("100"),
+                        Decimal("100000000.00"),
+                    ),
+                    (
+                        "IT",
+                        "UNIT",
+                        "Perangkat jaringan dan server",
+                        Decimal("20"),
+                        Decimal("250000000.00"),
+                    ),
+                ),
+            ),
+            (
+                "DEV-FY2026-FTI-001",
+                "FTI",
+                "ftipic",
+                "Penguatan Laboratorium Informatika",
+                "Draft baseline fakultas untuk Phase 3.",
+                (
+                    (
+                        "CAPEX",
+                        "UNIT",
+                        "Perangkat workstation laboratorium",
+                        Decimal("20"),
+                        Decimal("500000000.00"),
+                    ),
+                    (
+                        "OPEX",
+                        "MONTH",
+                        "Layanan pendukung laboratorium",
+                        Decimal("12"),
+                        Decimal("100000000.00"),
+                    ),
+                ),
+            ),
+        )
+        for plan_number, unit_code, username, title, description, item_specs in plan_specs:
+            allocation = allocations_by_key[("FY2026", unit_code)]
+            plan = BudgetPlan(
+                organization_id=organization.id,
+                fiscal_year_id=fiscal_years["FY2026"].id,
+                unit_allocation_id=allocation.id,
+                organization_unit_id=units[unit_code].id,
+                plan_number=plan_number,
+                status="DRAFT",
+                current_version_no=1,
+                row_version=1,
+                created_by=users[username].id,
+            )
+            session.add(plan)
+            await session.flush()
+
+            item_amounts = [quantity * unit_price for _, _, _, quantity, unit_price in item_specs]
+            version = BudgetPlanVersion(
+                organization_id=organization.id,
+                budget_plan_id=plan.id,
+                version_no=1,
+                title=title,
+                description=description,
+                total_amount=sum(item_amounts, Decimal("0.00")),
+                created_by=users[username].id,
+            )
+            session.add(version)
+            await session.flush()
+
+            for line_no, (
+                category_code,
+                uom_code,
+                item_description,
+                quantity,
+                unit_price,
+            ) in enumerate(item_specs, start=1):
+                session.add(
+                    BudgetPlanItem(
+                        organization_id=organization.id,
+                        plan_version_id=version.id,
+                        line_no=line_no,
+                        budget_category_id=categories_by_code[category_code].id,
+                        unit_of_measure_id=uoms_by_code[uom_code].id,
+                        description=item_description,
+                        quantity=quantity,
+                        unit_price=unit_price,
+                        amount=quantity * unit_price,
+                        notes=None,
+                    )
+                )
 
         viewer = users["viewer"]
         expired_at = now - timedelta(days=1)
@@ -597,7 +723,7 @@ async def main() -> None:
     print("Login password seluruh akun seed:", password)
     print("Akun utama: sysadmin, budgetadmin, management, auditor, viewer")
     print("Akun unit: itpic, itapprover, ftipic, ftiapprover")
-    print("FY2026 = PLANNING + Annual Budget APPROVED + allocation tersisa untuk smoke test.")
+    print("FY2026 = PLANNING + Annual Budget APPROVED + allocations + draft Budget Plans.")
 
 
 if __name__ == "__main__":

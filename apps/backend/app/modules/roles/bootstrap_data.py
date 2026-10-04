@@ -48,12 +48,19 @@ PHASE2C_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("unit_allocations.update", "Ubah Alokasi Unit", "unit_allocations"),
 )
 
+PHASE3A_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("budget_plans.view", "Lihat Rencana Anggaran", "budget_plans"),
+    ("budget_plans.create", "Buat Rencana Anggaran", "budget_plans"),
+    ("budget_plans.update", "Ubah Draft Rencana Anggaran", "budget_plans"),
+)
+
 ALL_BOOTSTRAP_PERMISSIONS = (
     FOUNDATION_PERMISSIONS
     + PHASE2A_PERMISSIONS
     + PHASE2B1_PERMISSIONS
     + PHASE2B2_PERMISSIONS
     + PHASE2C_PERMISSIONS
+    + PHASE3A_PERMISSIONS
 )
 
 PHASE2A_VIEW_PERMISSIONS = (
@@ -69,6 +76,8 @@ PHASE2B1_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2B1_PERMIS
 PHASE2B2_APPROVER_PERMISSIONS = tuple(code for code, _, _ in PHASE2B2_PERMISSIONS)
 PHASE2C_VIEW_PERMISSIONS = ("unit_allocations.view",)
 PHASE2C_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2C_PERMISSIONS)
+PHASE3A_VIEW_PERMISSIONS = ("budget_plans.view",)
+PHASE3A_UNIT_PIC_PERMISSIONS = tuple(code for code, _, _ in PHASE3A_PERMISSIONS)
 
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
@@ -78,7 +87,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         tuple(code for code, _, _ in FOUNDATION_PERMISSIONS)
         + PHASE2A_VIEW_PERMISSIONS
         + PHASE2B1_VIEW_PERMISSIONS
-        + PHASE2C_VIEW_PERMISSIONS,
+        + PHASE2C_VIEW_PERMISSIONS
+        + PHASE3A_VIEW_PERMISSIONS,
     ),
     (
         "BUDGET_ADMIN",
@@ -93,19 +103,24 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         )
         + PHASE2A_BUDGET_ADMIN_PERMISSIONS
         + PHASE2B1_BUDGET_ADMIN_PERMISSIONS
-        + PHASE2C_BUDGET_ADMIN_PERMISSIONS,
+        + PHASE2C_BUDGET_ADMIN_PERMISSIONS
+        + PHASE3A_VIEW_PERMISSIONS,
     ),
     (
         "UNIT_PIC",
         "Unit PIC",
         "Template user operasional unit. Permission rencana anggaran ditambahkan pada Phase 3.",
-        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
+        ("settings.view", "organization_units.view")
+        + PHASE2A_VIEW_PERMISSIONS
+        + PHASE3A_UNIT_PIC_PERMISSIONS,
     ),
     (
         "UNIT_APPROVER",
         "Unit Approver",
         "Template approver unit. Permission approval ditambahkan pada Phase 4.",
-        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
+        ("settings.view", "organization_units.view")
+        + PHASE2A_VIEW_PERMISSIONS
+        + PHASE3A_VIEW_PERMISSIONS,
     ),
     (
         "MANAGEMENT_APPROVER",
@@ -115,7 +130,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE2A_VIEW_PERMISSIONS
         + PHASE2B1_VIEW_PERMISSIONS
         + PHASE2B2_APPROVER_PERMISSIONS
-        + PHASE2C_VIEW_PERMISSIONS,
+        + PHASE2C_VIEW_PERMISSIONS
+        + PHASE3A_VIEW_PERMISSIONS,
     ),
     (
         "AUDITOR",
@@ -131,12 +147,15 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         )
         + PHASE2A_VIEW_PERMISSIONS
         + PHASE2B1_VIEW_PERMISSIONS
-        + PHASE2C_VIEW_PERMISSIONS,
+        + PHASE2C_VIEW_PERMISSIONS
+        + PHASE3A_VIEW_PERMISSIONS,
     ),
     (
         "VIEWER",
         "Viewer",
         "Akses baca terbatas.",
-        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
+        ("settings.view", "organization_units.view")
+        + PHASE2A_VIEW_PERMISSIONS
+        + PHASE3A_VIEW_PERMISSIONS,
     ),
 )

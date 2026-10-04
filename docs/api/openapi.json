@@ -2566,6 +2566,263 @@
         }
       }
     },
+    "/api/v1/budget-plans/context": {
+      "get": {
+        "tags": [
+          "budget-plans"
+        ],
+        "summary": "Budget Plan Context Endpoint",
+        "operationId": "budget_plan_context_endpoint_api_v1_budget_plans_context_get",
+        "parameters": [
+          {
+            "name": "fiscal_year_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Fiscal Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetPlanContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budget-plans": {
+      "get": {
+        "tags": [
+          "budget-plans"
+        ],
+        "summary": "List Budget Plans Endpoint",
+        "operationId": "list_budget_plans_endpoint_api_v1_budget_plans_get",
+        "parameters": [
+          {
+            "name": "fiscal_year_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Fiscal Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/BudgetPlanResponse"
+                  },
+                  "title": "Response List Budget Plans Endpoint Api V1 Budget Plans Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "budget-plans"
+        ],
+        "summary": "Create Budget Plan Endpoint",
+        "operationId": "create_budget_plan_endpoint_api_v1_budget_plans_post",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetPlanCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/budget-plans/{plan_id}": {
+      "get": {
+        "tags": [
+          "budget-plans"
+        ],
+        "summary": "Get Budget Plan Endpoint",
+        "operationId": "get_budget_plan_endpoint_api_v1_budget_plans__plan_id__get",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Plan Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "budget-plans"
+        ],
+        "summary": "Update Budget Plan Endpoint",
+        "operationId": "update_budget_plan_endpoint_api_v1_budget_plans__plan_id__patch",
+        "parameters": [
+          {
+            "name": "plan_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Plan Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/BudgetPlanUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/BudgetPlanResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "tags": [
@@ -3830,6 +4087,484 @@
         },
         "type": "object",
         "title": "BudgetCategoryUpdateRequest"
+      },
+      "BudgetPlanAllocationOption": {
+        "properties": {
+          "unit_allocation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Unit Allocation Id"
+          },
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "organization_unit_code": {
+            "type": "string",
+            "title": "Organization Unit Code"
+          },
+          "organization_unit_name": {
+            "type": "string",
+            "title": "Organization Unit Name"
+          },
+          "allocation_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocation Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "unit_allocation_id",
+          "organization_unit_id",
+          "organization_unit_code",
+          "organization_unit_name",
+          "allocation_amount"
+        ],
+        "title": "BudgetPlanAllocationOption"
+      },
+      "BudgetPlanContextResponse": {
+        "properties": {
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "fiscal_year_code": {
+            "type": "string",
+            "title": "Fiscal Year Code"
+          },
+          "fiscal_year_status": {
+            "$ref": "#/components/schemas/FiscalYearStatus"
+          },
+          "allocations": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetPlanAllocationOption"
+            },
+            "type": "array",
+            "title": "Allocations"
+          },
+          "budget_categories": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetPlanLookupOption"
+            },
+            "type": "array",
+            "title": "Budget Categories"
+          },
+          "units_of_measure": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetPlanLookupOption"
+            },
+            "type": "array",
+            "title": "Units Of Measure"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fiscal_year_id",
+          "fiscal_year_code",
+          "fiscal_year_status",
+          "allocations",
+          "budget_categories",
+          "units_of_measure"
+        ],
+        "title": "BudgetPlanContextResponse"
+      },
+      "BudgetPlanCreateRequest": {
+        "properties": {
+          "unit_allocation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Unit Allocation Id"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 250,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetPlanItemRequest"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "unit_allocation_id",
+          "title",
+          "items"
+        ],
+        "title": "BudgetPlanCreateRequest"
+      },
+      "BudgetPlanItemRequest": {
+        "properties": {
+          "budget_category_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Budget Category Id"
+          },
+          "unit_of_measure_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Unit Of Measure Id"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "quantity": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,14}|(?=[\\d.]{1,19}0*$)\\d{0,14}\\.\\d{0,4}0*$)"
+              }
+            ],
+            "title": "Quantity"
+          },
+          "unit_price": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,21}0*$)\\d{0,18}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Unit Price"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "budget_category_id",
+          "unit_of_measure_id",
+          "description",
+          "quantity",
+          "unit_price"
+        ],
+        "title": "BudgetPlanItemRequest"
+      },
+      "BudgetPlanItemResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "line_no": {
+            "type": "integer",
+            "title": "Line No"
+          },
+          "budget_category_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Budget Category Id"
+          },
+          "budget_category_code": {
+            "type": "string",
+            "title": "Budget Category Code"
+          },
+          "budget_category_name": {
+            "type": "string",
+            "title": "Budget Category Name"
+          },
+          "unit_of_measure_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Unit Of Measure Id"
+          },
+          "unit_of_measure_code": {
+            "type": "string",
+            "title": "Unit Of Measure Code"
+          },
+          "unit_of_measure_name": {
+            "type": "string",
+            "title": "Unit Of Measure Name"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "quantity": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Quantity"
+          },
+          "unit_price": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Unit Price"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "line_no",
+          "budget_category_id",
+          "budget_category_code",
+          "budget_category_name",
+          "unit_of_measure_id",
+          "unit_of_measure_code",
+          "unit_of_measure_name",
+          "description",
+          "quantity",
+          "unit_price",
+          "amount",
+          "notes"
+        ],
+        "title": "BudgetPlanItemResponse"
+      },
+      "BudgetPlanLookupOption": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "code": {
+            "type": "string",
+            "title": "Code"
+          },
+          "name": {
+            "type": "string",
+            "title": "Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "code",
+          "name"
+        ],
+        "title": "BudgetPlanLookupOption"
+      },
+      "BudgetPlanResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "fiscal_year_code": {
+            "type": "string",
+            "title": "Fiscal Year Code"
+          },
+          "unit_allocation_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Unit Allocation Id"
+          },
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "organization_unit_code": {
+            "type": "string",
+            "title": "Organization Unit Code"
+          },
+          "organization_unit_name": {
+            "type": "string",
+            "title": "Organization Unit Name"
+          },
+          "allocation_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocation Amount"
+          },
+          "plan_number": {
+            "type": "string",
+            "title": "Plan Number"
+          },
+          "status": {
+            "$ref": "#/components/schemas/BudgetPlanStatus"
+          },
+          "current_version_no": {
+            "type": "integer",
+            "title": "Current Version No"
+          },
+          "row_version": {
+            "type": "integer",
+            "title": "Row Version"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "total_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Total Amount"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetPlanItemResponse"
+            },
+            "type": "array",
+            "title": "Items"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Created By"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fiscal_year_id",
+          "fiscal_year_code",
+          "unit_allocation_id",
+          "organization_unit_id",
+          "organization_unit_code",
+          "organization_unit_name",
+          "allocation_amount",
+          "plan_number",
+          "status",
+          "current_version_no",
+          "row_version",
+          "title",
+          "description",
+          "total_amount",
+          "items",
+          "created_by",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "BudgetPlanResponse"
+      },
+      "BudgetPlanStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "PENDING_APPROVAL",
+          "APPROVED",
+          "REJECTED",
+          "CANCELLED"
+        ],
+        "title": "BudgetPlanStatus"
+      },
+      "BudgetPlanUpdateRequest": {
+        "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          },
+          "title": {
+            "type": "string",
+            "maxLength": 250,
+            "minLength": 1,
+            "title": "Title"
+          },
+          "description": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 4000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Description"
+          },
+          "items": {
+            "items": {
+              "$ref": "#/components/schemas/BudgetPlanItemRequest"
+            },
+            "type": "array",
+            "maxItems": 200,
+            "minItems": 1,
+            "title": "Items"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_row_version",
+          "title",
+          "items"
+        ],
+        "title": "BudgetPlanUpdateRequest"
       },
       "CurrentUserResponse": {
         "properties": {

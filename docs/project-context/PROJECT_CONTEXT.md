@@ -1,4 +1,4 @@
-# PROJECT CONTEXT — SIMA through Phase 2D
+# PROJECT CONTEXT — SIMA through Phase 3A
 
 ## Project
 
@@ -22,42 +22,46 @@ A generic web application for annual budget planning, allocation, approval, real
 
 Authentication, server-side sessions, CSRF, users, roles, permissions, scoped RBAC, organization hierarchy, settings, audit, and administration hardening are complete.
 
-### Phase 2A — Budget master foundation
+### Phase 2 — Budget Foundation
+
+Complete through CP-07:
 
 - Fiscal Year lifecycle;
-- budget categories;
-- units of measure.
+- budget categories and units of measure;
+- Annual Budget draft/submission/approval/rejection/revision;
+- Unit Allocation;
+- aggregate budget ceilings;
+- PostgreSQL concurrency protection;
+- optimistic concurrency;
+- real dashboard budget summary;
+- deterministic development seed.
 
-Fiscal Year lifecycle:
+## Current Phase 3A
+
+Budget Plan draft foundation introduces:
 
 ```text
-DRAFT → PLANNING → ACTIVE → CLOSED → ARCHIVED
+UnitAllocation
+  └── BudgetPlan
+        └── BudgetPlanVersion
+              └── BudgetPlanItem[]
 ```
 
-### Phase 2B — Annual Budget
+Rules:
 
-- one Annual Budget per Fiscal Year;
-- Decimal / NUMERIC monetary values;
-- draft and submission;
-- Management Approval / rejection;
-- rejection revision and resubmission;
-- approved budget locking;
-- self-approval disabled by default;
-- audit history.
+- plan belongs to one unit and one Unit Allocation;
+- unit must be allowed to create plans;
+- draft creation/editing is allowed only in PLANNING;
+- Unit PIC access follows OWN_UNIT / OWN_UNIT_AND_CHILDREN scope;
+- each item stores quantity, unit price, category, UOM, and backend-computed amount;
+- plan total cannot exceed its source Unit Allocation;
+- draft plan editing uses optimistic row-version protection;
+- draft plans do not consume official committed balance yet;
+- Phase 3B/3C will add submission, approval, immutable approved versions, and committed-budget controls.
 
-### Phase 2C — Unit Allocation
+## Development Seed
 
-- one allocation per Annual Budget + organization unit;
-- only eligible active units can receive allocation;
-- Annual Budget must be APPROVED;
-- writes allowed only in PLANNING;
-- total allocation <= approved Annual Budget;
-- PostgreSQL row locking protects concurrent aggregate writes;
-- allocation changes are versioned and audited.
-
-### Development Seed Baseline
-
-Deterministic development seed covers all implemented tables through Phase 2C and provides representative roles, users, units, Fiscal Years, Annual Budgets, approvals, and allocations.
+The cumulative development seed is extended with representative FY2026 draft plans for IT and FTI.
 
 Reset command:
 
@@ -65,28 +69,18 @@ Reset command:
 make dev-seed-reset CONFIRM=RESET
 ```
 
-## Current Phase 2D hardening
-
-- allocation optimistic concurrency using `expected_version`;
-- organization units with open-year allocations cannot become ineligible or inactive;
-- Dashboard shows real Annual Budget / Allocated / Remaining values;
-- clearer Unit Allocation states;
-- regression-warning cleanup;
-- final Phase 2 gate.
-
 ## Core financial invariants
 
 - money uses Decimal / PostgreSQL NUMERIC;
 - Annual Budget approval locks the official pagu;
 - Unit Allocation aggregate may not exceed Annual Budget;
+- Budget Plan approval in later Phase 3 must preserve committed total <= Unit Allocation;
 - concurrent writes must preserve financial ceilings;
 - System Administrator does not imply financial authority;
-- processed financial records are not hard-deleted;
 - material financial/security mutations are audited.
 
 ## Next
 
-After Phase 2D passes automated validation, browser smoke testing, CI, and merge:
+After Phase 3A validation, smoke testing, CI, and merge:
 
-1. create CP-07 — Phase 2 Budget Foundation Complete;
-2. begin Phase 3 — Budget Plan / Rencana Anggaran.
+**Phase 3B — Budget Plan Submission & Approval.**

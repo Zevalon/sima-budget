@@ -10,6 +10,7 @@ from app.modules.annual_budgets.models import AnnualBudget, AnnualBudgetApproval
 from app.modules.audit.models import AuditLog
 from app.modules.auth.models import UserSession
 from app.modules.budget_foundation.models import BudgetCategory, FiscalYear, UnitOfMeasure
+from app.modules.budget_plans.models import BudgetPlan, BudgetPlanItem, BudgetPlanVersion
 from app.modules.organizations.bootstrap_data import DEFAULT_UNIT_TYPES
 from app.modules.organizations.models import (
     Organization,
@@ -154,6 +155,32 @@ async def verify() -> None:
             )
         )
         assert int(eligible_unallocated or 0) >= 1
+
+        seeded_plans = (
+            await session.scalars(
+                select(BudgetPlan).where(
+                    BudgetPlan.organization_id == organization.id,
+                    BudgetPlan.plan_number.in_(["DEV-FY2026-IT-001", "DEV-FY2026-FTI-001"]),
+                )
+            )
+        ).all()
+        assert len(seeded_plans) == 2
+        for plan in seeded_plans:
+            assert plan.status == "DRAFT"
+            version = await session.scalar(
+                select(BudgetPlanVersion).where(
+                    BudgetPlanVersion.budget_plan_id == plan.id,
+                    BudgetPlanVersion.version_no == 1,
+                )
+            )
+            assert version is not None
+            item_count = await session.scalar(
+                select(func.count(BudgetPlanItem.id)).where(
+                    BudgetPlanItem.plan_version_id == version.id
+                )
+            )
+            assert int(item_count or 0) == 2
+            assert version.total_amount > Decimal("0.00")
 
         revoked_seed_session = await session.scalar(
             select(UserSession).where(UserSession.user_id == users_by_username["viewer"].id)
