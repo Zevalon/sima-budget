@@ -1,0 +1,77 @@
+.allocation-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.allocation-summary > div {
+  display: grid;
+  gap: 0.35rem;
+}
+
+.allocation-summary strong {
+  font-size: 1.05rem;
+}
+
+.allocation-form {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.allocation-form h2,
+.allocation-span-2,
+.allocation-actions {
+  grid-column: 1 / -1;
+}
+
+.allocation-actions {
+  display: flex;
+  justify-content: flex-end;
+}
+
+.allocation-list {
+  display: grid;
+  gap: 1rem;
+}
+
+.allocation-card {
+  display: grid;
+  gap: 1rem;
+  padding: 1rem;
+  border: 1px solid var(--border-color, #dce3ec);
+  border-radius: 0.9rem;
+}
+
+.allocation-card-header {
+  display: flex;
+  justify-content: space-between;
+  gap: 1rem;
+  align-items: flex-start;
+}
+
+.allocation-card-header > div {
+  display: grid;
+  gap: 0.25rem;
+}
+
+.allocation-edit-form {
+  display: grid;
+  grid-template-columns: 1fr 1fr auto;
+  gap: 0.75rem;
+  align-items: end;
+}
+
+@media (max-width: 900px) {
+  .allocation-summary,
+  .allocation-form,
+  .allocation-edit-form {
+    grid-template-columns: 1fr;
+  }
+
+  .allocation-form h2,
+  .allocation-span-2,
+  .allocation-actions {
+    grid-column: auto;
+  }
+}
