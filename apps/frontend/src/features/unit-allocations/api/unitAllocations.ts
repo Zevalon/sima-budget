@@ -22,7 +22,7 @@ export function createUnitAllocation(payload: {
 
 export function updateUnitAllocation(
   allocationId: string,
-  payload: { amount?: string; notes?: string | null },
+  payload: { expected_version: number; amount?: string; notes?: string | null },
 ): Promise<UnitAllocation> {
   return apiRequest<UnitAllocation>(
     `/unit-allocations/${allocationId}`,

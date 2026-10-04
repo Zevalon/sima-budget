@@ -1,4 +1,4 @@
-.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify bootstrap-admin phase0-check phase1a-check phase1b-check phase1c1-check phase1c2-check phase1d1-check phase1d2-check phase2a-check phase2b1-check phase2b2-check phase2c-check dev-seed dev-seed-reset dev-seed-verify
+.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify bootstrap-admin phase0-check phase1a-check phase1b-check phase1c1-check phase1c2-check phase1d1-check phase1d2-check phase2a-check phase2b1-check phase2b2-check phase2c-check phase2d-check dev-seed dev-seed-reset dev-seed-verify
 
 help:
 	@echo "SIMA development commands"
@@ -26,6 +26,7 @@ help:
 	@echo "  make phase2b1-check         Run Phase 2A regression + annual budget core checks"
 	@echo "  make phase2b2-check         Run Phase 2B1 regression + annual budget approval checks"
 	@echo "  make phase2c-check          Run Phase 2B2 regression + unit allocation checks"
+	@echo "  make phase2d-check          Run Phase 2C regression + budget foundation hardening"
 	@echo "  make dev-seed               Refresh deterministic development seed"
 	@echo "  make dev-seed-reset         RESET dev data; requires CONFIRM=RESET"
 	@echo "  make dev-seed-verify        Verify deterministic development seed"
@@ -109,6 +110,9 @@ phase2b2-check:
 
 phase2c-check:
 	./scripts/check-phase2c.sh
+
+phase2d-check:
+	./scripts/check-phase2d.sh
 
 dev-seed:
 	$(MAKE) dev-db-up

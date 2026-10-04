@@ -23,5 +23,5 @@ async def meta() -> dict[str, str]:
     return {
         "api_version": "v1",
         "application": "SIMA",
-        "implementation_phase": "2C",
+        "implementation_phase": "2D",
     }

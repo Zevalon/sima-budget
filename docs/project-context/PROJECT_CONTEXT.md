@@ -1,154 +1,92 @@
-# PROJECT CONTEXT — SIMA through CP-05
+# PROJECT CONTEXT — SIMA through Phase 2D
 
 ## Project
+
 SIMA — Sistem Informasi Monitoring Anggaran.
 
-Default name is configurable from Application Settings.
-
-Initial target is a private university, but domain is intentionally generic for other organizations.
-
-## Product Scope
-Annual budget:
-Fiscal Year
-→ Annual Budget
-→ Unit Allocation
-→ Budget Plan
-→ Plan Items
-→ Approval
-→ Realization
-→ Monitoring/Reporting.
-
-Not an accounting/GL, procurement, payroll, SIAKAD, or ERP replacement.
+A generic web application for annual budget planning, allocation, approval, realization, monitoring, and reporting. Initial deployment target is a private university.
 
 ## Technology
-Frontend:
-React + TypeScript + Vite.
 
-Backend:
-FastAPI + Python 3.14 baseline.
+- React + TypeScript + Vite
+- FastAPI + Python
+- PostgreSQL
+- SQLAlchemy 2 async + psycopg 3
+- Alembic
+- Docker Compose
+- modular monolith / monorepo
 
-Database:
-PostgreSQL.
+## Completed implementation
 
-Architecture:
-Modular monolith + monorepo.
+### Phase 1 — Foundation
 
-Dev infrastructure:
-Docker Compose.
+Authentication, server-side sessions, CSRF, users, roles, permissions, scoped RBAC, organization hierarchy, settings, audit, and administration hardening are complete.
 
-Redis:
-not part of V1 until a real need exists.
+### Phase 2A — Budget master foundation
 
-## Auth
-Server-side opaque sessions using HttpOnly cookies.
-CSRF protection for unsafe cookie-authenticated requests.
-Argon2id password hashing.
-No auth token in localStorage.
+- Fiscal Year lifecycle;
+- budget categories;
+- units of measure.
 
-## Authorization
-RBAC + scope:
-OWN
-OWN_UNIT
-OWN_UNIT_AND_CHILDREN
-ALL.
+Fiscal Year lifecycle:
 
-System Administrator is separate from financial authority.
+```text
+DRAFT → PLANNING → ACTIVE → CLOSED → ARCHIVED
+```
 
-## Core Financial Rules
-- Annual Budget cannot be silently overwritten after approval.
-- Approved Plan cannot be silently edited.
-- Revision retains history.
-- Allocation <= Annual Budget.
-- Approved commitments <= Unit Allocation.
-- Realization <= approved plan by default.
-- Draft Plan does not reserve official balance.
-- Final Plan approval creates commitment.
-- Financial constraints are rechecked inside DB transaction.
-- Processed financial documents are not hard-deleted.
-- Audit trail covers critical financial/security changes.
+### Phase 2B — Annual Budget
 
-## UI/UX
-Desktop-first responsive.
-Sidebar + topbar.
-Global Fiscal Year context.
-Role-aware dashboards.
-Multi-step Plan form.
-Approval Inbox.
-Separate workflow/execution statuses.
-Tree organization management.
-Server-side tables.
-Explicit loading/empty/error/conflict states.
-Configurable branding.
+- one Annual Budget per Fiscal Year;
+- Decimal / NUMERIC monetary values;
+- draft and submission;
+- Management Approval / rejection;
+- rejection revision and resubmission;
+- approved budget locking;
+- self-approval disabled by default;
+- audit history.
 
-## Engineering Baseline
-Monorepo:
-apps/backend
-apps/frontend
-docs
-test-cases
-logs/testing
-.github
-docker/scripts.
+### Phase 2C — Unit Allocation
 
-Backend:
-SQLAlchemy 2 async, psycopg 3, Alembic, Pydantic.
-Ruff + mypy + pytest.
+- one allocation per Annual Budget + organization unit;
+- only eligible active units can receive allocation;
+- Annual Budget must be APPROVED;
+- writes allowed only in PLANNING;
+- total allocation <= approved Annual Budget;
+- PostgreSQL row locking protects concurrent aggregate writes;
+- allocation changes are versioned and audited.
 
-Frontend:
-React Router, TanStack Query, RHF, Zod, TanStack Table, Tailwind, Radix/shadcn-style primitives.
-Vitest + RTL + MSW + Playwright.
-OpenAPI generated TypeScript contract.
+### Development Seed Baseline
 
-## Environment
-Development
-Test
-Staging recommended
-Production
+Deterministic development seed covers all implemented tables through Phase 2C and provides representative roles, users, units, Fiscal Years, Annual Budgets, approvals, and allocations.
 
-Each has isolated database/secrets/storage.
+Reset command:
 
-## Database
-PostgreSQL integration tests.
-No SQLite as primary integration substitute.
-Alembic required for all schema changes.
+```bash
+make dev-seed-reset CONFIRM=RESET
+```
 
-## CI
-Backend lint/type/migration/test.
-Frontend lint/format/type/test/build.
-OpenAPI contract freshness.
-Critical E2E.
-Security/dependency checks.
+## Current Phase 2D hardening
 
-## Documentation
-CP-01: Requirement & Business Rules — COMPLETE
-CP-02: Data Model & ERD — COMPLETE
-CP-03: Architecture & API — COMPLETE
-CP-04: UI/UX & Navigation — COMPLETE
-CP-05: Development Readiness — COMPLETE
+- allocation optimistic concurrency using `expected_version`;
+- organization units with open-year allocations cannot become ineligible or inactive;
+- Dashboard shows real Annual Budget / Allocated / Remaining values;
+- clearer Unit Allocation states;
+- regression-warning cleanup;
+- final Phase 2 gate.
 
-## Current Project Status
-**READY FOR IMPLEMENTATION**
+## Core financial invariants
 
-## Next Work
-Implementation Phase 0:
-Repository & Tooling Scaffold.
+- money uses Decimal / PostgreSQL NUMERIC;
+- Annual Budget approval locks the official pagu;
+- Unit Allocation aggregate may not exceed Annual Budget;
+- concurrent writes must preserve financial ceilings;
+- System Administrator does not imply financial authority;
+- processed financial records are not hard-deleted;
+- material financial/security mutations are audited.
 
-The first implementation should create the real repository structure and runnable skeleton, not financial features yet.
+## Next
 
-Exit criteria:
-- clean clone starts;
-- PostgreSQL works;
-- backend health works;
-- frontend shell loads;
-- formatting/lint/type/test commands work;
-- CI skeleton exists;
-- docs/checkpoints are copied into repository;
-- `.env.example` exists;
-- no secrets are committed.
+After Phase 2D passes automated validation, browser smoke testing, CI, and merge:
 
-## Recovery Rule
-If chat context is lost:
-1. read PROJECT_CONTEXT;
-2. read CP-01 through CP-05;
-3. continue from current implementation phase;
-4. do not silently change baseline business/architecture decisions.
+1. create CP-07 — Phase 2 Budget Foundation Complete;
+2. begin Phase 3 — Budget Plan / Rencana Anggaran.
