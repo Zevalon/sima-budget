@@ -25,6 +25,7 @@ from app.modules.organizations.models import (
     OrganizationUnitType,
     UserUnitMembership,
 )
+from app.modules.realizations.models import Realization
 from app.modules.roles.models import Role, UserRoleAssignment
 from app.modules.settings.models import ApplicationSetting
 from app.modules.unit_allocations.models import UnitAllocation
@@ -458,6 +459,9 @@ async def apply_seed() -> None:
         ).all()
         if plan_ids:
             await session.execute(
+                delete(Realization).where(Realization.budget_plan_id.in_(plan_ids))
+            )
+            await session.execute(
                 delete(BudgetPlanApproval).where(BudgetPlanApproval.budget_plan_id.in_(plan_ids))
             )
         await session.execute(
@@ -734,6 +738,114 @@ async def apply_seed() -> None:
                 )
             )
 
+        fy2025_allocation = allocations_by_key[("FY2025", "IT")]
+        fy2025_plan = BudgetPlan(
+            organization_id=organization.id,
+            fiscal_year_id=fiscal_years["FY2025"].id,
+            unit_allocation_id=fy2025_allocation.id,
+            organization_unit_id=units["IT"].id,
+            plan_number="DEV-FY2025-IT-REALIZATION-001",
+            status="APPROVED",
+            current_version_no=1,
+            row_version=3,
+            created_by=users["itpic"].id,
+            submitted_by=users["itpic"].id,
+            submitted_at=now - timedelta(days=220),
+            approved_by=users["itapprover"].id,
+            approved_at=now - timedelta(days=218),
+            rejection_reason=None,
+        )
+        session.add(fy2025_plan)
+        await session.flush()
+        fy2025_version = BudgetPlanVersion(
+            organization_id=organization.id,
+            budget_plan_id=fy2025_plan.id,
+            version_no=1,
+            title="Operasional Infrastruktur TI FY2025",
+            description="Baseline APPROVED untuk smoke test realisasi Phase 4.",
+            total_amount=Decimal("20000000000.00"),
+            created_by=users["itpic"].id,
+        )
+        session.add(fy2025_version)
+        await session.flush()
+        session.add_all(
+            [
+                BudgetPlanItem(
+                    organization_id=organization.id,
+                    plan_version_id=fy2025_version.id,
+                    line_no=1,
+                    budget_category_id=categories_by_code["IT"].id,
+                    unit_of_measure_id=uoms_by_code["MONTH"].id,
+                    description="Layanan infrastruktur dan cloud",
+                    quantity=Decimal("12"),
+                    unit_price=Decimal("1000000000.00"),
+                    amount=Decimal("12000000000.00"),
+                    notes=None,
+                ),
+                BudgetPlanItem(
+                    organization_id=organization.id,
+                    plan_version_id=fy2025_version.id,
+                    line_no=2,
+                    budget_category_id=categories_by_code["IT"].id,
+                    unit_of_measure_id=uoms_by_code["UNIT"].id,
+                    description="Perangkat pendukung infrastruktur",
+                    quantity=Decimal("8"),
+                    unit_price=Decimal("1000000000.00"),
+                    amount=Decimal("8000000000.00"),
+                    notes=None,
+                ),
+            ]
+        )
+        session.add(
+            BudgetPlanApproval(
+                organization_id=organization.id,
+                budget_plan_id=fy2025_plan.id,
+                plan_version_id=fy2025_version.id,
+                submission_no=1,
+                status="APPROVED",
+                requested_by=users["itpic"].id,
+                requested_at=now - timedelta(days=220),
+                decided_by=users["itapprover"].id,
+                decided_at=now - timedelta(days=218),
+                decision_note="Approved realization baseline.",
+            )
+        )
+        posted_realization = Realization(
+            organization_id=organization.id,
+            fiscal_year_id=fiscal_years["FY2025"].id,
+            budget_plan_id=fy2025_plan.id,
+            plan_version_id=fy2025_version.id,
+            organization_unit_id=units["IT"].id,
+            realization_number="DEV-RLZ-FY2025-IT-001",
+            status="POSTED",
+            realization_date=date(2025, 3, 15),
+            reference_number="INV-DEV-2025-001",
+            description="Pembayaran layanan infrastruktur triwulan pertama",
+            vendor_name="Vendor Infrastruktur Demo",
+            amount=Decimal("5000000000.00"),
+            row_version=2,
+            created_by=users["itpic"].id,
+            posted_by=users["itpic"].id,
+            posted_at=now - timedelta(days=200),
+        )
+        draft_realization = Realization(
+            organization_id=organization.id,
+            fiscal_year_id=fiscal_years["FY2025"].id,
+            budget_plan_id=fy2025_plan.id,
+            plan_version_id=fy2025_version.id,
+            organization_unit_id=units["IT"].id,
+            realization_number="DEV-RLZ-FY2025-IT-002",
+            status="DRAFT",
+            realization_date=date(2025, 4, 1),
+            reference_number="DRAFT-DEV-2025-002",
+            description="Draft pembelian perangkat pendukung",
+            vendor_name=None,
+            amount=Decimal("2000000000.00"),
+            row_version=1,
+            created_by=users["itpic"].id,
+        )
+        session.add_all([posted_realization, draft_realization])
+
         viewer = users["viewer"]
         expired_at = now - timedelta(days=1)
         session.add(
@@ -778,6 +890,18 @@ async def apply_seed() -> None:
                 ),
                 AuditLog(
                     organization_id=organization.id,
+                    actor_user_id=users["itpic"].id,
+                    action="REALIZATION_POSTED",
+                    entity_type="realization",
+                    entity_id=posted_realization.id,
+                    after_data={
+                        "status": "POSTED",
+                        "amount": str(posted_realization.amount),
+                    },
+                    metadata_json={"seed_profile": SEED_PROFILE},
+                ),
+                AuditLog(
+                    organization_id=organization.id,
                     actor_user_id=users["sysadmin"].id,
                     action="DEV_SEED_APPLIED",
                     entity_type="development_seed",
@@ -815,8 +939,8 @@ async def main() -> None:
     print("Akun utama: sysadmin, budgetadmin, management, auditor, viewer")
     print("Akun unit: itpic, itapprover, ftipic, ftiapprover")
     print(
-        "FY2026 = PLANNING + allocations + pending/rejected/approved plan "
-        "scenarios + commitment baseline."
+        "FY2025 = ACTIVE + approved plan + posted/draft realization; "
+        "FY2026 = PLANNING + planning/approval/commitment scenarios."
     )
 
 

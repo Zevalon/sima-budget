@@ -14,6 +14,7 @@ from app.modules.organizations.models import (
     OrganizationUnitType,
     UserUnitMembership,
 )
+from app.modules.realizations.models import Realization
 from app.modules.roles.models import Permission, Role, RolePermission, UserRoleAssignment
 from app.modules.settings.models import ApplicationSetting
 from app.modules.unit_allocations.models import UnitAllocation
@@ -42,4 +43,5 @@ MODELS = (
     BudgetPlanVersion,
     BudgetPlanItem,
     BudgetPlanApproval,
+    Realization,
 )

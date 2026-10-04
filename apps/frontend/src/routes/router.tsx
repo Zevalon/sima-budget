@@ -19,6 +19,7 @@ import { BudgetPlanApprovalPage } from "../features/budget-plans/pages/BudgetPla
 import { BudgetPlansPage } from "../features/budget-plans/pages/BudgetPlansPage";
 import { AuditLogPage } from "../features/foundation/pages/AuditLogPage";
 import { SettingsPage } from "../features/foundation/pages/SettingsPage";
+import { RealizationsPage } from "../features/realizations/pages/RealizationsPage";
 import { UnitAllocationsPage } from "../features/unit-allocations/pages/UnitAllocationsPage";
 import { NotFoundPage } from "../features/system/pages/NotFoundPage";
 import { AppShell } from "../layouts/AppShell";
@@ -67,6 +68,15 @@ export const router = createBrowserRouter([
               {
                 path: "budget-plans",
                 element: <BudgetPlansPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["realizations.view"]} />,
+            children: [
+              {
+                path: "realizations",
+                element: <RealizationsPage />,
               },
             ],
           },

@@ -23,6 +23,7 @@ from app.modules.organizations.models import (
     OrganizationUnitType,
     UserUnitMembership,
 )
+from app.modules.realizations.models import Realization
 from app.modules.roles.bootstrap_data import ALL_BOOTSTRAP_PERMISSIONS, DEFAULT_ROLE_TEMPLATES
 from app.modules.roles.models import Permission, Role, UserRoleAssignment
 from app.modules.settings.models import ApplicationSetting
@@ -237,6 +238,38 @@ async def verify() -> None:
         assert approved_it_version is not None
         assert approved_it_version.total_amount == Decimal("30000000000.00")
         assert it_allocation.amount - approved_it_version.total_amount == Decimal("90000000000.00")
+
+        fy2025 = await session.scalar(
+            select(FiscalYear).where(
+                FiscalYear.organization_id == organization.id,
+                FiscalYear.code == "FY2025",
+            )
+        )
+        assert fy2025 is not None
+        realization_plan = await session.scalar(
+            select(BudgetPlan).where(
+                BudgetPlan.organization_id == organization.id,
+                BudgetPlan.plan_number == "DEV-FY2025-IT-REALIZATION-001",
+            )
+        )
+        assert realization_plan is not None
+        assert realization_plan.status == "APPROVED"
+        realization_rows = (
+            await session.scalars(
+                select(Realization).where(Realization.budget_plan_id == realization_plan.id)
+            )
+        ).all()
+        assert len(realization_rows) == 2
+        realized_amount = sum(
+            (item.amount for item in realization_rows if item.status == "POSTED"),
+            Decimal("0.00"),
+        )
+        draft_realization = sum(
+            (item.amount for item in realization_rows if item.status == "DRAFT"),
+            Decimal("0.00"),
+        )
+        assert realized_amount == Decimal("5000000000.00")
+        assert draft_realization == Decimal("2000000000.00")
 
         revoked_seed_session = await session.scalar(
             select(UserSession).where(UserSession.user_id == users_by_username["viewer"].id)

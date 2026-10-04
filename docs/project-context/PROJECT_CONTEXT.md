@@ -72,3 +72,8 @@ not add persistent tables, so no new seed entity is required.
 ## Next milestone
 
 After Phase 3D gate, smoke test, CI, and merge: create CP-08 — Phase 3 Budget Plan Complete.
+
+
+## Phase 4A — Realization Core
+
+Status: implementation in validation. Adds scoped realization DRAFT → POSTED against exact APPROVED Budget Plan versions, strict cumulative realization ceiling, optimistic concurrency, audit trail, and cumulative development seed extension.
