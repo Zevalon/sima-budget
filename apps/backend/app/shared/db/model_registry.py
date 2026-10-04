@@ -10,6 +10,7 @@ from app.modules.organizations.models import (
 )
 from app.modules.roles.models import Permission, Role, RolePermission, UserRoleAssignment
 from app.modules.settings.models import ApplicationSetting
+from app.modules.unit_allocations.models import UnitAllocation
 from app.modules.users.models import User
 
 MODELS = (
@@ -30,4 +31,5 @@ MODELS = (
     UnitOfMeasure,
     AnnualBudget,
     AnnualBudgetApproval,
+    UnitAllocation,
 )

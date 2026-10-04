@@ -1,0 +1,1 @@
+"""Unit allocation domain module."""

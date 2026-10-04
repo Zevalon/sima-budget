@@ -2395,6 +2395,177 @@
         }
       }
     },
+    "/api/v1/unit-allocations/overview": {
+      "get": {
+        "tags": [
+          "unit-allocations"
+        ],
+        "summary": "Unit Allocation Overview Endpoint",
+        "operationId": "unit_allocation_overview_endpoint_api_v1_unit_allocations_overview_get",
+        "parameters": [
+          {
+            "name": "fiscal_year_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Fiscal Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitAllocationOverviewResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/unit-allocations": {
+      "post": {
+        "tags": [
+          "unit-allocations"
+        ],
+        "summary": "Create Unit Allocation Endpoint",
+        "operationId": "create_unit_allocation_endpoint_api_v1_unit_allocations_post",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnitAllocationCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitAllocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/unit-allocations/{allocation_id}": {
+      "patch": {
+        "tags": [
+          "unit-allocations"
+        ],
+        "summary": "Update Unit Allocation Endpoint",
+        "operationId": "update_unit_allocation_endpoint_api_v1_unit_allocations__allocation_id__patch",
+        "parameters": [
+          {
+            "name": "allocation_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Allocation Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/UnitAllocationUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UnitAllocationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "tags": [
@@ -4436,6 +4607,236 @@
         },
         "type": "object",
         "title": "RoleUpdateRequest"
+      },
+      "UnitAllocationCreateRequest": {
+        "properties": {
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,21}0*$)\\d{0,18}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Amount"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fiscal_year_id",
+          "organization_unit_id",
+          "amount"
+        ],
+        "title": "UnitAllocationCreateRequest"
+      },
+      "UnitAllocationOverviewResponse": {
+        "properties": {
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "fiscal_year_code": {
+            "type": "string",
+            "title": "Fiscal Year Code"
+          },
+          "fiscal_year_status": {
+            "$ref": "#/components/schemas/FiscalYearStatus"
+          },
+          "annual_budget_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annual Budget Id"
+          },
+          "annual_budget_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnnualBudgetStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "annual_budget_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Annual Budget Amount"
+          },
+          "allocated_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocated Amount"
+          },
+          "remaining_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Remaining Amount"
+          },
+          "allocations": {
+            "items": {
+              "$ref": "#/components/schemas/UnitAllocationResponse"
+            },
+            "type": "array",
+            "title": "Allocations"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fiscal_year_id",
+          "fiscal_year_code",
+          "fiscal_year_status",
+          "annual_budget_id",
+          "annual_budget_status",
+          "annual_budget_amount",
+          "allocated_amount",
+          "remaining_amount",
+          "allocations"
+        ],
+        "title": "UnitAllocationOverviewResponse"
+      },
+      "UnitAllocationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "annual_budget_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Annual Budget Id"
+          },
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "organization_unit_code": {
+            "type": "string",
+            "title": "Organization Unit Code"
+          },
+          "organization_unit_name": {
+            "type": "string",
+            "title": "Organization Unit Name"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fiscal_year_id",
+          "annual_budget_id",
+          "organization_unit_id",
+          "organization_unit_code",
+          "organization_unit_name",
+          "amount",
+          "notes",
+          "version",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "UnitAllocationResponse"
+      },
+      "UnitAllocationUpdateRequest": {
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,21}0*$)\\d{0,18}\\.\\d{0,2}0*$)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "UnitAllocationUpdateRequest"
       },
       "UnitMembershipResponse": {
         "properties": {

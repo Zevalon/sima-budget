@@ -42,8 +42,18 @@ PHASE2B2_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("annual_budgets.approve", "Setujui atau Tolak Anggaran Tahunan", "annual_budgets"),
 )
 
+PHASE2C_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("unit_allocations.view", "Lihat Alokasi Unit", "unit_allocations"),
+    ("unit_allocations.create", "Buat Alokasi Unit", "unit_allocations"),
+    ("unit_allocations.update", "Ubah Alokasi Unit", "unit_allocations"),
+)
+
 ALL_BOOTSTRAP_PERMISSIONS = (
-    FOUNDATION_PERMISSIONS + PHASE2A_PERMISSIONS + PHASE2B1_PERMISSIONS + PHASE2B2_PERMISSIONS
+    FOUNDATION_PERMISSIONS
+    + PHASE2A_PERMISSIONS
+    + PHASE2B1_PERMISSIONS
+    + PHASE2B2_PERMISSIONS
+    + PHASE2C_PERMISSIONS
 )
 
 PHASE2A_VIEW_PERMISSIONS = (
@@ -57,6 +67,8 @@ PHASE2A_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2A_PERMISSI
 PHASE2B1_VIEW_PERMISSIONS = ("annual_budgets.view",)
 PHASE2B1_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2B1_PERMISSIONS)
 PHASE2B2_APPROVER_PERMISSIONS = tuple(code for code, _, _ in PHASE2B2_PERMISSIONS)
+PHASE2C_VIEW_PERMISSIONS = ("unit_allocations.view",)
+PHASE2C_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2C_PERMISSIONS)
 
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
@@ -65,7 +77,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         "Mengelola konfigurasi sistem, pengguna, role, permission, dan struktur organisasi.",
         tuple(code for code, _, _ in FOUNDATION_PERMISSIONS)
         + PHASE2A_VIEW_PERMISSIONS
-        + PHASE2B1_VIEW_PERMISSIONS,
+        + PHASE2B1_VIEW_PERMISSIONS
+        + PHASE2C_VIEW_PERMISSIONS,
     ),
     (
         "BUDGET_ADMIN",
@@ -79,7 +92,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "permissions.view",
         )
         + PHASE2A_BUDGET_ADMIN_PERMISSIONS
-        + PHASE2B1_BUDGET_ADMIN_PERMISSIONS,
+        + PHASE2B1_BUDGET_ADMIN_PERMISSIONS
+        + PHASE2C_BUDGET_ADMIN_PERMISSIONS,
     ),
     (
         "UNIT_PIC",
@@ -100,7 +114,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         ("settings.view", "organization_units.view")
         + PHASE2A_VIEW_PERMISSIONS
         + PHASE2B1_VIEW_PERMISSIONS
-        + PHASE2B2_APPROVER_PERMISSIONS,
+        + PHASE2B2_APPROVER_PERMISSIONS
+        + PHASE2C_VIEW_PERMISSIONS,
     ),
     (
         "AUDITOR",
@@ -115,7 +130,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "audit.view",
         )
         + PHASE2A_VIEW_PERMISSIONS
-        + PHASE2B1_VIEW_PERMISSIONS,
+        + PHASE2B1_VIEW_PERMISSIONS
+        + PHASE2C_VIEW_PERMISSIONS,
     ),
     (
         "VIEWER",

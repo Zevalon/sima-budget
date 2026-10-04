@@ -16,6 +16,7 @@ import { UnitsOfMeasurePage } from "../features/budget-foundation/pages/UnitsOfM
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
 import { AuditLogPage } from "../features/foundation/pages/AuditLogPage";
 import { SettingsPage } from "../features/foundation/pages/SettingsPage";
+import { UnitAllocationsPage } from "../features/unit-allocations/pages/UnitAllocationsPage";
 import { NotFoundPage } from "../features/system/pages/NotFoundPage";
 import { AppShell } from "../layouts/AppShell";
 
@@ -45,6 +46,15 @@ export const router = createBrowserRouter([
               {
                 path: "annual-budgets",
                 element: <AnnualBudgetsPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["unit_allocations.view"]} />,
+            children: [
+              {
+                path: "unit-allocations",
+                element: <UnitAllocationsPage />,
               },
             ],
           },

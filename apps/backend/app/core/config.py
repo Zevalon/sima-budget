@@ -29,6 +29,7 @@ class Settings(BaseSettings):
     file_storage_path: str = "../../runtime/uploads"
     max_upload_size_mb: int = 20
     log_level: str = "INFO"
+    dev_seed_password: str = "SimaDev-2026!"
 
     @property
     def trusted_host_list(self) -> list[str]:
