@@ -5,10 +5,13 @@ import { getFormString } from "../../../lib/forms/formData";
 import { useAuth } from "../../auth/auth-context";
 import { useFiscalYear } from "../../budget-foundation/fiscal-year-context";
 import {
+  cancelRealization,
+  createCorrectionDraft,
   createRealization,
   getRealizationContext,
   listRealizations,
   postRealization,
+  reverseRealization,
   updateRealization,
 } from "../api/realizations";
 import type { Realization, RealizationContext } from "../types";
@@ -34,6 +37,8 @@ export function RealizationsPage() {
   const canCreate = permissions.has("realizations.create");
   const canUpdate = permissions.has("realizations.update");
   const canPost = permissions.has("realizations.post");
+  const canCancel = permissions.has("realizations.cancel");
+  const canReverse = permissions.has("realizations.reverse");
 
   const [context, setContext] = useState<RealizationContext | null>(null);
   const [items, setItems] = useState<Realization[]>([]);
@@ -105,6 +110,56 @@ export function RealizationsPage() {
         amount: getFormString(data, "amount"),
       });
       setMessage("Draft realisasi berhasil diperbarui.");
+      await reload();
+    } catch (error) {
+      setErrorMessage(messageFromError(error));
+    }
+  }
+
+  async function handleCancel(item: Realization) {
+    const reason = window.prompt("Alasan pembatalan draft realisasi:")?.trim();
+    if (!reason) {
+      return;
+    }
+    setMessage(null);
+    setErrorMessage(null);
+    try {
+      await cancelRealization(item.id, item.row_version, reason);
+      setMessage("Draft realisasi berhasil dibatalkan.");
+      await reload();
+    } catch (error) {
+      setErrorMessage(messageFromError(error));
+    }
+  }
+
+  async function handleReverse(item: Realization) {
+    const reason = window.prompt("Alasan reversal realisasi POSTED:")?.trim();
+    if (!reason) {
+      return;
+    }
+    if (!window.confirm(`Reversal ${item.realization_number}? Nilai akan dilepas dari realized.`)) {
+      return;
+    }
+    setMessage(null);
+    setErrorMessage(null);
+    try {
+      await reverseRealization(item.id, item.row_version, reason);
+      setMessage("Realisasi berhasil direversal.");
+      await reload();
+    } catch (error) {
+      setErrorMessage(messageFromError(error));
+    }
+  }
+
+  async function handleCorrection(item: Realization) {
+    if (!window.confirm(`Buat draft koreksi dari ${item.realization_number}?`)) {
+      return;
+    }
+    setMessage(null);
+    setErrorMessage(null);
+    try {
+      await createCorrectionDraft(item.id, item.row_version);
+      setMessage("Draft koreksi berhasil dibuat. Silakan review lalu posting jika sudah benar.");
       await reload();
     } catch (error) {
       setErrorMessage(messageFromError(error));
@@ -306,6 +361,15 @@ export function RealizationsPage() {
                           />
                         </label>
                         <div className="realization-actions realization-span-2">
+                          {canCancel ? (
+                            <button
+                              className="danger-button"
+                              type="button"
+                              onClick={() => void handleCancel(item)}
+                            >
+                              Batalkan Draft
+                            </button>
+                          ) : null}
                           <button className="secondary-button" type="submit">
                             Simpan Perubahan
                           </button>
@@ -328,6 +392,47 @@ export function RealizationsPage() {
                           {item.vendor_name ? ` · ${item.vendor_name}` : ""}
                         </span>
                         <strong>{formatCurrency(item.amount)}</strong>
+                        {item.status === "CANCELLED" && item.cancellation_reason ? (
+                          <span className="realization-reason">
+                            Alasan pembatalan: {item.cancellation_reason}
+                          </span>
+                        ) : null}
+                        {item.status === "REVERSED" && item.reversal_reason ? (
+                          <span className="realization-reason">
+                            Alasan reversal: {item.reversal_reason}
+                          </span>
+                        ) : null}
+                        {item.correction_of_id ? (
+                          <span className="muted">Record ini merupakan draft/hasil koreksi.</span>
+                        ) : null}
+                        {item.status === "POSTED" && canReverse && isActive ? (
+                          <div className="realization-actions">
+                            <button
+                              className="danger-button"
+                              type="button"
+                              onClick={() => void handleReverse(item)}
+                            >
+                              Reversal Posting
+                            </button>
+                          </div>
+                        ) : null}
+                        {item.status === "REVERSED" &&
+                        !item.correction_id &&
+                        canCreate &&
+                        isActive ? (
+                          <div className="realization-actions">
+                            <button
+                              className="secondary-button"
+                              type="button"
+                              onClick={() => void handleCorrection(item)}
+                            >
+                              Buat Draft Koreksi
+                            </button>
+                          </div>
+                        ) : null}
+                        {item.status === "REVERSED" && item.correction_id ? (
+                          <span className="muted">Draft/record koreksi sudah dibuat.</span>
+                        ) : null}
                       </div>
                     )}
                     <span className="muted">Versi record {item.row_version}</span>

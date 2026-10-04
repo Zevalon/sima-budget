@@ -17,11 +17,13 @@ from app.modules.organizations.models import OrganizationUnit
 from app.modules.realizations.models import Realization
 from app.modules.realizations.schemas import (
     RealizationContextResponse,
+    RealizationCorrectionRequest,
     RealizationCreateRequest,
     RealizationPlanOption,
     RealizationPostRequest,
     RealizationResponse,
     RealizationStatus,
+    RealizationStatusActionRequest,
     RealizationUpdateRequest,
 )
 
@@ -167,6 +169,9 @@ async def _response(session: AsyncSession, item: Realization) -> RealizationResp
         plan_id=plan.id,
         approved_amount=version.total_amount,
     )
+    correction_id = await session.scalar(
+        select(Realization.id).where(Realization.correction_of_id == item.id)
+    )
     return RealizationResponse(
         id=item.id,
         fiscal_year_id=fiscal_year.id,
@@ -193,6 +198,14 @@ async def _response(session: AsyncSession, item: Realization) -> RealizationResp
         created_by=item.created_by,
         posted_by=item.posted_by,
         posted_at=item.posted_at,
+        correction_of_id=item.correction_of_id,
+        correction_id=correction_id,
+        cancelled_by=item.cancelled_by,
+        cancelled_at=item.cancelled_at,
+        cancellation_reason=item.cancellation_reason,
+        reversed_by=item.reversed_by,
+        reversed_at=item.reversed_at,
+        reversal_reason=item.reversal_reason,
         created_at=item.created_at,
         updated_at=item.updated_at,
     )
@@ -592,6 +605,255 @@ async def post_realization(
         metadata_json={
             "budget_plan_id": str(plan.id),
             "plan_version_id": str(version.id),
+        },
+    )
+    await session.commit()
+    await session.refresh(item)
+    return await _response(session, item)
+
+
+async def cancel_realization(
+    session: AsyncSession,
+    *,
+    realization_id: UUID,
+    payload: RealizationStatusActionRequest,
+    actor_user_id: UUID,
+) -> RealizationResponse:
+    organization = await get_default_organization(session)
+    item = await session.scalar(
+        select(Realization)
+        .where(
+            Realization.id == realization_id,
+            Realization.organization_id == organization.id,
+        )
+        .with_for_update()
+    )
+    if item is None:
+        raise not_found("Realisasi tidak ditemukan.")
+    await _assert_unit_permission(
+        session,
+        user_id=actor_user_id,
+        permission_code="realizations.cancel",
+        unit_id=item.organization_unit_id,
+    )
+    if item.status != RealizationStatus.DRAFT.value:
+        raise conflict("Hanya draft realisasi yang dapat dibatalkan.")
+    if item.row_version != payload.expected_row_version:
+        raise conflict("Data realisasi telah berubah. Muat ulang sebelum membatalkan.")
+
+    fiscal_year = await _fiscal_year(
+        session,
+        organization_id=organization.id,
+        fiscal_year_id=item.fiscal_year_id,
+    )
+    if fiscal_year.status != FiscalYearStatus.ACTIVE.value:
+        raise conflict("Pembatalan realisasi hanya dapat dilakukan saat tahun anggaran ACTIVE.")
+
+    now = datetime.now(UTC)
+    reason = payload.reason.strip()
+    item.status = RealizationStatus.CANCELLED.value
+    item.cancelled_by = actor_user_id
+    item.cancelled_at = now
+    item.cancellation_reason = reason
+    item.row_version += 1
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="REALIZATION_CANCELLED",
+        entity_type="realization",
+        entity_id=item.id,
+        before_data={"status": RealizationStatus.DRAFT.value},
+        after_data={
+            "status": RealizationStatus.CANCELLED.value,
+            "row_version": item.row_version,
+        },
+        metadata_json={"reason": reason},
+    )
+    await session.commit()
+    await session.refresh(item)
+    return await _response(session, item)
+
+
+async def reverse_realization(
+    session: AsyncSession,
+    *,
+    realization_id: UUID,
+    payload: RealizationStatusActionRequest,
+    actor_user_id: UUID,
+) -> RealizationResponse:
+    organization = await get_default_organization(session)
+    item = await session.scalar(
+        select(Realization)
+        .where(
+            Realization.id == realization_id,
+            Realization.organization_id == organization.id,
+        )
+        .with_for_update()
+    )
+    if item is None:
+        raise not_found("Realisasi tidak ditemukan.")
+    await _assert_unit_permission(
+        session,
+        user_id=actor_user_id,
+        permission_code="realizations.reverse",
+        unit_id=item.organization_unit_id,
+    )
+    if item.status != RealizationStatus.POSTED.value:
+        raise conflict("Hanya realisasi POSTED yang dapat direversal.")
+    if item.row_version != payload.expected_row_version:
+        raise conflict("Data realisasi telah berubah. Muat ulang sebelum reversal.")
+
+    plan, _ = await _plan_with_unit(
+        session,
+        organization_id=organization.id,
+        plan_id=item.budget_plan_id,
+        lock=True,
+    )
+    if plan.status != BudgetPlanStatus.APPROVED.value:
+        raise conflict("Rencana anggaran tidak lagi berstatus APPROVED.")
+    current_version = await _plan_version(session, plan=plan)
+    if item.plan_version_id != current_version.id:
+        raise conflict("Versi rencana realisasi tidak sesuai dengan versi APPROVED.")
+
+    fiscal_year = await _fiscal_year(
+        session,
+        organization_id=organization.id,
+        fiscal_year_id=item.fiscal_year_id,
+    )
+    if fiscal_year.status != FiscalYearStatus.ACTIVE.value:
+        raise conflict("Reversal hanya dapat dilakukan saat tahun anggaran ACTIVE.")
+
+    now = datetime.now(UTC)
+    reason = payload.reason.strip()
+    item.status = RealizationStatus.REVERSED.value
+    item.reversed_by = actor_user_id
+    item.reversed_at = now
+    item.reversal_reason = reason
+    item.row_version += 1
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="REALIZATION_REVERSED",
+        entity_type="realization",
+        entity_id=item.id,
+        before_data={
+            "status": RealizationStatus.POSTED.value,
+            "amount": str(item.amount),
+        },
+        after_data={
+            "status": RealizationStatus.REVERSED.value,
+            "row_version": item.row_version,
+        },
+        metadata_json={
+            "reason": reason,
+            "budget_plan_id": str(plan.id),
+            "plan_version_id": str(current_version.id),
+        },
+    )
+    await session.commit()
+    await session.refresh(item)
+    return await _response(session, item)
+
+
+async def create_correction_draft(
+    session: AsyncSession,
+    *,
+    realization_id: UUID,
+    payload: RealizationCorrectionRequest,
+    actor_user_id: UUID,
+) -> RealizationResponse:
+    organization = await get_default_organization(session)
+    source = await session.scalar(
+        select(Realization)
+        .where(
+            Realization.id == realization_id,
+            Realization.organization_id == organization.id,
+        )
+        .with_for_update()
+    )
+    if source is None:
+        raise not_found("Realisasi sumber koreksi tidak ditemukan.")
+    await _assert_unit_permission(
+        session,
+        user_id=actor_user_id,
+        permission_code="realizations.create",
+        unit_id=source.organization_unit_id,
+    )
+    if source.status != RealizationStatus.REVERSED.value:
+        raise conflict("Draft koreksi hanya dapat dibuat dari realisasi REVERSED.")
+    if source.row_version != payload.expected_row_version:
+        raise conflict("Data realisasi telah berubah. Muat ulang sebelum membuat koreksi.")
+
+    existing = await session.scalar(
+        select(Realization.id).where(Realization.correction_of_id == source.id)
+    )
+    if existing is not None:
+        raise conflict("Realisasi ini sudah memiliki draft/record koreksi.")
+
+    plan, unit = await _plan_with_unit(
+        session,
+        organization_id=organization.id,
+        plan_id=source.budget_plan_id,
+        lock=True,
+    )
+    if plan.status != BudgetPlanStatus.APPROVED.value:
+        raise conflict("Rencana anggaran tidak lagi berstatus APPROVED.")
+    version = await _plan_version(session, plan=plan)
+    if source.plan_version_id != version.id:
+        raise conflict("Versi rencana sumber koreksi tidak sesuai dengan versi APPROVED.")
+
+    fiscal_year = await _fiscal_year(
+        session,
+        organization_id=organization.id,
+        fiscal_year_id=source.fiscal_year_id,
+    )
+    if fiscal_year.status != FiscalYearStatus.ACTIVE.value:
+        raise conflict("Koreksi realisasi hanya dapat dibuat saat tahun anggaran ACTIVE.")
+
+    _, _, remaining = await _plan_financials(
+        session,
+        plan_id=plan.id,
+        approved_amount=version.total_amount,
+    )
+    if source.amount > remaining:
+        raise conflict("Nilai koreksi awal melebihi sisa rencana yang dapat direalisasi.")
+
+    item = Realization(
+        organization_id=organization.id,
+        fiscal_year_id=fiscal_year.id,
+        budget_plan_id=plan.id,
+        plan_version_id=version.id,
+        organization_unit_id=unit.id,
+        realization_number=f"RLZ-{fiscal_year.code}-{unit.code}-{uuid4().hex[:8].upper()}",
+        status=RealizationStatus.DRAFT.value,
+        realization_date=source.realization_date,
+        reference_number=f"CORR-{source.reference_number}"[:120],
+        description=source.description,
+        vendor_name=source.vendor_name,
+        amount=source.amount,
+        row_version=1,
+        created_by=actor_user_id,
+        correction_of_id=source.id,
+    )
+    session.add(item)
+    await session.flush()
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="REALIZATION_CORRECTION_DRAFT_CREATED",
+        entity_type="realization",
+        entity_id=item.id,
+        after_data={
+            "status": item.status,
+            "amount": str(item.amount),
+            "correction_of_id": str(source.id),
+        },
+        metadata_json={
+            "source_realization_number": source.realization_number,
+            "budget_plan_id": str(plan.id),
         },
     )
     await session.commit()

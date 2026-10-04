@@ -11,6 +11,8 @@ vi.mock("../src/features/auth/auth-context", () => ({
         "realizations.create",
         "realizations.update",
         "realizations.post",
+        "realizations.cancel",
+        "realizations.reverse",
       ],
     },
   }),
@@ -51,6 +53,9 @@ vi.mock("../src/features/realizations/api/realizations", () => ({
   createRealization: vi.fn(),
   updateRealization: vi.fn(),
   postRealization: vi.fn(),
+  cancelRealization: vi.fn(),
+  reverseRealization: vi.fn(),
+  createCorrectionDraft: vi.fn(),
 }));
 
 describe("RealizationsPage", () => {

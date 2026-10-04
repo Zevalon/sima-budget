@@ -28,11 +28,28 @@ class Realization(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ),
         CheckConstraint("amount > 0", name="ck_realization_amount_positive"),
         CheckConstraint("row_version >= 1", name="ck_realization_row_version_positive"),
+        CheckConstraint(
+            "correction_of_id IS NULL OR correction_of_id <> id",
+            name="ck_realization_correction_not_self",
+        ),
+        CheckConstraint(
+            "status <> 'CANCELLED' OR "
+            "(cancelled_by IS NOT NULL AND cancelled_at IS NOT NULL "
+            "AND cancellation_reason IS NOT NULL)",
+            name="ck_realization_cancel_metadata",
+        ),
+        CheckConstraint(
+            "status <> 'REVERSED' OR "
+            "(reversed_by IS NOT NULL AND reversed_at IS NOT NULL "
+            "AND reversal_reason IS NOT NULL AND posted_at IS NOT NULL)",
+            name="ck_realization_reverse_metadata",
+        ),
         UniqueConstraint(
             "organization_id",
             "realization_number",
             name="uq_realization_org_number",
         ),
+        UniqueConstraint("correction_of_id", name="uq_realization_correction_of"),
     )
 
     organization_id: Mapped[UUID] = mapped_column(
@@ -67,3 +84,16 @@ class Realization(UUIDPrimaryKeyMixin, TimestampMixin, Base):
         ForeignKey("users.id", ondelete="SET NULL"), index=True
     )
     posted_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    correction_of_id: Mapped[UUID | None] = mapped_column(
+        ForeignKey("realizations.id", ondelete="RESTRICT"), index=True
+    )
+    cancelled_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), index=True
+    )
+    cancelled_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    cancellation_reason: Mapped[str | None] = mapped_column(String(500))
+    reversed_by: Mapped[UUID | None] = mapped_column(
+        ForeignKey("users.id", ondelete="RESTRICT"), index=True
+    )
+    reversed_at: Mapped[datetime | None] = mapped_column(DateTime(timezone=True))
+    reversal_reason: Mapped[str | None] = mapped_column(String(500))

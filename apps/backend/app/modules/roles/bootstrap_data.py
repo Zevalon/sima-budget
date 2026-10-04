@@ -67,6 +67,11 @@ PHASE4A_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("realizations.post", "Posting Realisasi Anggaran", "realizations"),
 )
 
+PHASE4B_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("realizations.cancel", "Batalkan Draft Realisasi", "realizations"),
+    ("realizations.reverse", "Reversal Realisasi Posted", "realizations"),
+)
+
 ALL_BOOTSTRAP_PERMISSIONS = (
     FOUNDATION_PERMISSIONS
     + PHASE2A_PERMISSIONS
@@ -76,6 +81,7 @@ ALL_BOOTSTRAP_PERMISSIONS = (
     + PHASE3A_PERMISSIONS
     + PHASE3B_PERMISSIONS
     + PHASE4A_PERMISSIONS
+    + PHASE4B_PERMISSIONS
 )
 
 PHASE2A_VIEW_PERMISSIONS = (
@@ -97,6 +103,7 @@ PHASE3B_UNIT_PIC_PERMISSIONS = ("budget_plans.submit", "budget_plans.revise")
 PHASE3B_UNIT_APPROVER_PERMISSIONS = ("budget_plans.approve",)
 PHASE4A_VIEW_PERMISSIONS = ("realizations.view",)
 PHASE4A_UNIT_PIC_PERMISSIONS = tuple(code for code, _, _ in PHASE4A_PERMISSIONS)
+PHASE4B_UNIT_PIC_PERMISSIONS = tuple(code for code, _, _ in PHASE4B_PERMISSIONS)
 
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
@@ -135,7 +142,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE2A_VIEW_PERMISSIONS
         + PHASE3A_UNIT_PIC_PERMISSIONS
         + PHASE3B_UNIT_PIC_PERMISSIONS
-        + PHASE4A_UNIT_PIC_PERMISSIONS,
+        + PHASE4A_UNIT_PIC_PERMISSIONS
+        + PHASE4B_UNIT_PIC_PERMISSIONS,
     ),
     (
         "UNIT_APPROVER",
