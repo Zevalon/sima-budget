@@ -34,6 +34,9 @@ vi.mock("../src/features/unit-allocations/api/unitAllocations", () => ({
     committed_amount: "30000000000.00",
     draft_pipeline_amount: "15000000000.00",
     available_amount: "270000000000.00",
+    realized_amount: "12000000000.00",
+    realization_draft_pipeline_amount: "3000000000.00",
+    remaining_to_realize_amount: "18000000000.00",
     allocations: [
       {
         id: "allocation-1",
@@ -46,6 +49,9 @@ vi.mock("../src/features/unit-allocations/api/unitAllocations", () => ({
         committed_amount: "30000000000.00",
         draft_pipeline_amount: "15000000000.00",
         available_amount: "90000000000.00",
+        realized_amount: "12000000000.00",
+        realization_draft_pipeline_amount: "3000000000.00",
+        remaining_to_realize_amount: "18000000000.00",
         notes: null,
         version: 1,
         created_at: "2026-01-01T00:00:00Z",
@@ -63,5 +69,7 @@ describe("DashboardPage", () => {
     expect(await screen.findByText("Rp 600.000.000.000,00")).toBeInTheDocument();
     expect(screen.getAllByText("Rp 300.000.000.000,00")).toHaveLength(2);
     expect(screen.getByText("50.0% dari pagu")).toBeInTheDocument();
+    expect(screen.getByText("Realized")).toBeInTheDocument();
+    expect(screen.getByText("Sisa Direalisasi")).toBeInTheDocument();
   });
 });

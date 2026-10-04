@@ -12,6 +12,7 @@ export type RealizationPlanOption = {
   realized_amount: string;
   draft_pipeline_amount: string;
   remaining_amount: string;
+  utilization_percent: string;
 };
 
 export type RealizationContext = {
@@ -22,6 +23,7 @@ export type RealizationContext = {
   scope_realized_amount: string;
   scope_draft_pipeline_amount: string;
   scope_remaining_amount: string;
+  scope_utilization_percent: string;
   plans: RealizationPlanOption[];
 };
 

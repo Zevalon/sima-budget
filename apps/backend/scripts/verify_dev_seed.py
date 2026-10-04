@@ -28,6 +28,7 @@ from app.modules.roles.bootstrap_data import ALL_BOOTSTRAP_PERMISSIONS, DEFAULT_
 from app.modules.roles.models import Permission, Role, UserRoleAssignment
 from app.modules.settings.models import ApplicationSetting
 from app.modules.unit_allocations.models import UnitAllocation
+from app.modules.unit_allocations.service import get_unit_allocation_overview
 from app.modules.users.models import User
 from scripts.seed_dev import CATEGORY_SPECS, SEED_PROFILE, UNIT_SPECS, UOM_SPECS, USER_SPECS
 
@@ -279,6 +280,15 @@ async def verify() -> None:
         assert reversed_items[0].reversal_reason is not None
         assert len(corrections) == 1
         assert corrections[0].correction_of_id == reversed_items[0].id
+
+        overview2025 = await get_unit_allocation_overview(session, fiscal_year_id=fy2025.id)
+        it_execution = next(
+            item for item in overview2025.allocations if item.organization_unit_code == "IT"
+        )
+        assert it_execution.committed_amount == Decimal("20000000000.00")
+        assert it_execution.realized_amount == Decimal("5000000000.00")
+        assert it_execution.realization_draft_pipeline_amount == Decimal("3400000000.00")
+        assert it_execution.remaining_to_realize_amount == Decimal("15000000000.00")
 
         revoked_seed_session = await session.scalar(
             select(UserSession).where(UserSession.user_id == users_by_username["viewer"].id)

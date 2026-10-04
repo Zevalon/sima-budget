@@ -1,4 +1,4 @@
-# PROJECT CONTEXT — SIMA through Phase 4B
+# PROJECT CONTEXT — SIMA through Phase 4C
 
 SIMA is an annual budget planning and monitoring application built with React + TypeScript,
 FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
@@ -11,23 +11,9 @@ FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 - Phase 3 — Budget Plan
 - CP-08 — Phase 3 Budget Plan Complete
 - Phase 4A — Realization Core
+- Phase 4B — Realization Correction, Cancellation & Reversal
 
-## Phase 4A — Realization Core
-
-Realization is linked to the exact APPROVED Budget Plan version.
-
-```text
-Approved Plan
-- POSTED Realization
-= Remaining To Realize
-```
-
-DRAFT records are informational pipeline only. Posting uses concurrency-safe aggregate validation
-and optimistic row-version checks.
-
-## Phase 4B — Correction Workflow
-
-Financial realization records are never hard-deleted.
+## Realization lifecycle
 
 ```text
 DRAFT -> POSTED -> REVERSED
@@ -36,23 +22,51 @@ DRAFT -> POSTED -> REVERSED
 REVERSED -> linked correction DRAFT -> POSTED
 ```
 
-Rules:
+Financial records are never hard-deleted. REVERSED and CANCELLED remain historical.
 
-- DRAFT cancellation requires a reason;
-- POSTED reversal requires a reason;
-- REVERSED no longer counts toward Realized;
-- CANCELLED no longer counts toward Draft Pipeline;
-- one direct correction DRAFT may be created from a reversed source;
-- source/correction linkage remains queryable;
-- cancel/reverse/correction use optimistic concurrency;
-- all actions are unit-scoped and audited;
-- only ACTIVE Fiscal Years allow financial mutations.
+## Phase 4C — Aggregates & Monitoring
+
+Cross-domain flow:
+
+```text
+Annual Budget
+  -> Allocated
+  -> Committed APPROVED Plans
+  -> Realized POSTED Transactions
+```
+
+Formulas:
+
+```text
+Available for new plans = Allocated - Committed
+Remaining to realize    = Committed - Realized
+Plan remaining          = Approved Plan - Realized
+```
+
+Pipelines remain separate:
+
+```text
+Plan Draft Pipeline        = DRAFT + PENDING_APPROVAL plans
+Realization Draft Pipeline = DRAFT realizations
+```
+
+Realization context includes utilization percentages and plan-level monitoring.
+Dashboard and Unit Allocation views expose execution aggregates.
+
+Concurrency rule:
+
+```text
+Realized <= Committed <= Allocated
+```
+
+Concurrent postings against one plan are serialized through the approved-plan lock so they cannot
+jointly exceed the approved amount.
 
 ## Seed baseline
 
-The cumulative development seed now contains representative DRAFT, POSTED, CANCELLED,
-REVERSED, and correction DRAFT realization records for FY2025.
+The Phase 4B cumulative development seed already contains DRAFT, POSTED, CANCELLED, REVERSED, and
+correction DRAFT records and remains suitable for Phase 4C monitoring smoke tests.
 
 ## Next
 
-Phase 4C — Realization Aggregates & Monitoring.
+Phase 4D — Realization Hardening & Phase 4 Completion.

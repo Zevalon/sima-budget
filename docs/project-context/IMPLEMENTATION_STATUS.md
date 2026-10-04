@@ -7,22 +7,22 @@
 - Phase 2 — Budget Foundation
 - Phase 3 — Budget Plan
 - Phase 4A — Realization Core
+- Phase 4B — Realization Correction, Cancellation & Reversal
 
 ## Current
 
-### Phase 4B — Realization Correction, Cancellation & Reversal
+### Phase 4C — Realization Aggregates & Monitoring
 
 Implementation adds:
 
-- non-destructive DRAFT cancellation;
-- non-destructive POSTED reversal;
-- cancellation/reversal reason metadata;
-- linked correction draft from a reversed realization;
-- optimistic concurrency for cancel/reverse/correction actions;
-- scope-aware permissions for realization lifecycle actions;
-- seed baseline covering CANCELLED, REVERSED, and correction DRAFT records;
-- audit events for financial corrections.
+- cross-domain execution aggregates from Annual Budget → Allocation → Commitment → Realization;
+- Realized and Realization Draft Pipeline on Unit Allocation summaries;
+- Remaining to Realize = Committed - Realized;
+- utilization percentage per approved plan and per scoped realization context;
+- monitoring UI on Dashboard, Unit Allocation, and Realization pages;
+- explicit concurrent posting verification;
+- invariant validation: `Realized <= Committed <= Allocated`.
 
-## Next after Phase 4B validation
+## Next after Phase 4C validation
 
-Phase 4C — Realization Aggregates & Monitoring.
+Phase 4D — Realization Hardening & Phase 4 Completion.

@@ -6500,6 +6500,11 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Scope Remaining Amount"
           },
+          "scope_utilization_percent": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Utilization Percent"
+          },
           "plans": {
             "items": {
               "$ref": "#/components/schemas/RealizationPlanOption"
@@ -6517,6 +6522,7 @@
           "scope_realized_amount",
           "scope_draft_pipeline_amount",
           "scope_remaining_amount",
+          "scope_utilization_percent",
           "plans"
         ],
         "title": "RealizationContextResponse"
@@ -6647,6 +6653,11 @@
             "type": "string",
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Remaining Amount"
+          },
+          "utilization_percent": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilization Percent"
           }
         },
         "type": "object",
@@ -6661,7 +6672,8 @@
           "approved_amount",
           "realized_amount",
           "draft_pipeline_amount",
-          "remaining_amount"
+          "remaining_amount",
+          "utilization_percent"
         ],
         "title": "RealizationPlanOption"
       },
@@ -7329,6 +7341,21 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Available Amount"
           },
+          "realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realized Amount"
+          },
+          "realization_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realization Draft Pipeline Amount"
+          },
+          "remaining_to_realize_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Remaining To Realize Amount"
+          },
           "allocations": {
             "items": {
               "$ref": "#/components/schemas/UnitAllocationResponse"
@@ -7350,6 +7377,9 @@
           "committed_amount",
           "draft_pipeline_amount",
           "available_amount",
+          "realized_amount",
+          "realization_draft_pipeline_amount",
+          "remaining_to_realize_amount",
           "allocations"
         ],
         "title": "UnitAllocationOverviewResponse"
@@ -7404,6 +7434,21 @@
             "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
             "title": "Available Amount"
           },
+          "realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realized Amount"
+          },
+          "realization_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realization Draft Pipeline Amount"
+          },
+          "remaining_to_realize_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Remaining To Realize Amount"
+          },
           "notes": {
             "anyOf": [
               {
@@ -7442,6 +7487,9 @@
           "committed_amount",
           "draft_pipeline_amount",
           "available_amount",
+          "realized_amount",
+          "realization_draft_pipeline_amount",
+          "remaining_to_realize_amount",
           "notes",
           "version",
           "created_at",

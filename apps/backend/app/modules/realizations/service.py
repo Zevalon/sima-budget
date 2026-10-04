@@ -46,6 +46,12 @@ def normalize_money(value: Decimal) -> Decimal:
     return value.quantize(MONEY_QUANTUM, rounding=ROUND_HALF_UP)
 
 
+def utilization_percent(realized: Decimal, approved: Decimal) -> Decimal:
+    if approved <= Decimal("0.00"):
+        return Decimal("0.00")
+    return ((realized / approved) * Decimal("100")).quantize(MONEY_QUANTUM, rounding=ROUND_HALF_UP)
+
+
 async def _fiscal_year(
     session: AsyncSession,
     *,
@@ -270,25 +276,25 @@ async def get_realization_context(
                 realized_amount=realized,
                 draft_pipeline_amount=pipeline,
                 remaining_amount=remaining,
+                utilization_percent=utilization_percent(realized, version.total_amount),
             )
         )
 
+    scope_approved = normalize_money(sum((plan.approved_amount for plan in plans), Decimal("0.00")))
+    scope_realized = normalize_money(sum((plan.realized_amount for plan in plans), Decimal("0.00")))
     return RealizationContextResponse(
         fiscal_year_id=fiscal_year.id,
         fiscal_year_code=fiscal_year.code,
         fiscal_year_status=FiscalYearStatus(fiscal_year.status),
-        scope_approved_amount=normalize_money(
-            sum((plan.approved_amount for plan in plans), Decimal("0.00"))
-        ),
-        scope_realized_amount=normalize_money(
-            sum((plan.realized_amount for plan in plans), Decimal("0.00"))
-        ),
+        scope_approved_amount=scope_approved,
+        scope_realized_amount=scope_realized,
         scope_draft_pipeline_amount=normalize_money(
             sum((plan.draft_pipeline_amount for plan in plans), Decimal("0.00"))
         ),
         scope_remaining_amount=normalize_money(
             sum((plan.remaining_amount for plan in plans), Decimal("0.00"))
         ),
+        scope_utilization_percent=utilization_percent(scope_realized, scope_approved),
         plans=plans,
     )
 

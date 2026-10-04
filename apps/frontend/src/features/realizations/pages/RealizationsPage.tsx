@@ -223,6 +223,10 @@ export function RealizationsPage() {
               <span className="muted">Sisa Dapat Direalisasi</span>
               <strong>{formatCurrency(context?.scope_remaining_amount ?? "0")}</strong>
             </div>
+            <div>
+              <span className="muted">Utilisasi</span>
+              <strong>{context?.scope_utilization_percent ?? "0.00"}%</strong>
+            </div>
           </section>
 
           {!isActive ? (
@@ -285,6 +289,33 @@ export function RealizationsPage() {
               <p className="muted">
                 Realisasi baru dapat dibuat setelah ada Rencana Anggaran APPROVED dalam scope Anda.
               </p>
+            </section>
+          ) : null}
+
+          {context && context.plans.length > 0 ? (
+            <section className="panel realization-monitoring">
+              <div className="table-toolbar">
+                <div>
+                  <h2>Monitoring per Rencana</h2>
+                  <span className="muted">Approved vs realized untuk scope Anda</span>
+                </div>
+              </div>
+              <div className="realization-monitoring-list">
+                {context.plans.map((plan) => (
+                  <article className="realization-monitoring-row" key={plan.budget_plan_id}>
+                    <div>
+                      <strong>{plan.plan_number}</strong>
+                      <span className="muted">
+                        {plan.organization_unit_code} · {plan.title}
+                      </span>
+                    </div>
+                    <span>{formatCurrency(plan.approved_amount)} approved</span>
+                    <span>{formatCurrency(plan.realized_amount)} realized</span>
+                    <span>{formatCurrency(plan.remaining_amount)} remaining</span>
+                    <strong>{plan.utilization_percent}%</strong>
+                  </article>
+                ))}
+              </div>
             </section>
           ) : null}
 

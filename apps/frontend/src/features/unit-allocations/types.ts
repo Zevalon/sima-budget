@@ -9,6 +9,9 @@ export type UnitAllocation = {
   committed_amount: string;
   draft_pipeline_amount: string;
   available_amount: string;
+  realized_amount: string;
+  realization_draft_pipeline_amount: string;
+  remaining_to_realize_amount: string;
   notes: string | null;
   version: number;
   created_at: string;
@@ -27,5 +30,8 @@ export type UnitAllocationOverview = {
   committed_amount: string;
   draft_pipeline_amount: string;
   available_amount: string;
+  realized_amount: string;
+  realization_draft_pipeline_amount: string;
+  remaining_to_realize_amount: string;
   allocations: UnitAllocation[];
 };
