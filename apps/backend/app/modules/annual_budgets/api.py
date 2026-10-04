@@ -7,15 +7,20 @@ from sqlalchemy.ext.asyncio import AsyncSession
 from app.api.dependencies.database import get_db_session
 from app.modules.annual_budgets.schemas import (
     AnnualBudgetApprovalResponse,
+    AnnualBudgetApproveRequest,
     AnnualBudgetCreateRequest,
+    AnnualBudgetRejectRequest,
     AnnualBudgetResponse,
     AnnualBudgetUpdateRequest,
 )
 from app.modules.annual_budgets.service import (
+    approve_annual_budget,
     create_annual_budget,
     get_annual_budget,
     list_annual_budget_approvals,
     list_annual_budgets,
+    list_pending_annual_budgets,
+    reject_annual_budget,
     submit_annual_budget,
     update_annual_budget,
 )
@@ -33,6 +38,20 @@ async def annual_budgets_endpoint(
     fiscal_year_id: Annotated[UUID | None, Query()] = None,
 ) -> list[AnnualBudgetResponse]:
     return await list_annual_budgets(session, fiscal_year_id=fiscal_year_id)
+
+
+@router.get(
+    "/annual-budget-approvals/pending",
+    response_model=list[AnnualBudgetResponse],
+)
+async def pending_annual_budget_approvals_endpoint(
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    _: Annotated[
+        AuthContext,
+        Depends(RequirePermission("annual_budgets.approve", require_all_scope=True)),
+    ],
+) -> list[AnnualBudgetResponse]:
+    return await list_pending_annual_budgets(session)
 
 
 @router.get("/annual-budgets/{annual_budget_id}", response_model=AnnualBudgetResponse)
@@ -97,6 +116,44 @@ async def submit_annual_budget_endpoint(
     return await submit_annual_budget(
         session,
         annual_budget_id=annual_budget_id,
+        actor_user_id=context.user.id,
+    )
+
+
+@router.post("/annual-budgets/{annual_budget_id}/approve", response_model=AnnualBudgetResponse)
+async def approve_annual_budget_endpoint(
+    annual_budget_id: UUID,
+    payload: AnnualBudgetApproveRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    context: Annotated[AuthContext, Depends(require_csrf)],
+    _: Annotated[
+        AuthContext,
+        Depends(RequirePermission("annual_budgets.approve", require_all_scope=True)),
+    ],
+) -> AnnualBudgetResponse:
+    return await approve_annual_budget(
+        session,
+        annual_budget_id=annual_budget_id,
+        payload=payload,
+        actor_user_id=context.user.id,
+    )
+
+
+@router.post("/annual-budgets/{annual_budget_id}/reject", response_model=AnnualBudgetResponse)
+async def reject_annual_budget_endpoint(
+    annual_budget_id: UUID,
+    payload: AnnualBudgetRejectRequest,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    context: Annotated[AuthContext, Depends(require_csrf)],
+    _: Annotated[
+        AuthContext,
+        Depends(RequirePermission("annual_budgets.approve", require_all_scope=True)),
+    ],
+) -> AnnualBudgetResponse:
+    return await reject_annual_budget(
+        session,
+        annual_budget_id=annual_budget_id,
+        payload=payload,
         actor_user_id=context.user.id,
     )
 

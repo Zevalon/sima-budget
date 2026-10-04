@@ -117,7 +117,11 @@ export function AnnualBudgetsPage() {
         amount: getFormString(data, "amount"),
         notes: getFormString(data, "notes") || null,
       });
-      setSuccessMessage("Anggaran tahunan berhasil diperbarui.");
+      setSuccessMessage(
+        budget.status === "REJECTED"
+          ? "Revisi disimpan. Status anggaran kembali menjadi DRAFT."
+          : "Anggaran tahunan berhasil diperbarui.",
+      );
       await reload();
     } catch (error: unknown) {
       setErrorMessage(
@@ -220,7 +224,7 @@ export function AnnualBudgetsPage() {
                 </span>
               </div>
 
-              {budget.status === "DRAFT" && canUpdate ? (
+              {(budget.status === "DRAFT" || budget.status === "REJECTED") && canUpdate ? (
                 <form className="annual-budget-form" onSubmit={(event) => void handleUpdate(event)}>
                   <label className="form-field">
                     <span>Jumlah anggaran</span>
@@ -235,11 +239,17 @@ export function AnnualBudgetsPage() {
                     <span>Catatan</span>
                     <textarea name="notes" rows={4} defaultValue={budget.notes ?? ""} />
                   </label>
+                  {budget.status === "REJECTED" && budget.rejection_reason ? (
+                    <div className="annual-budget-span-2 rejection-alert">
+                      <strong>Alasan penolakan</strong>
+                      <span>{budget.rejection_reason}</span>
+                    </div>
+                  ) : null}
                   <div className="annual-budget-actions">
                     <button className="secondary-button" type="submit">
-                      Simpan Perubahan
+                      {budget.status === "REJECTED" ? "Simpan Revisi" : "Simpan Perubahan"}
                     </button>
-                    {canSubmit ? (
+                    {budget.status === "DRAFT" && canSubmit ? (
                       <button
                         className="primary-button"
                         type="button"
@@ -264,6 +274,18 @@ export function AnnualBudgetsPage() {
                     <div>
                       <span className="muted">Diajukan</span>
                       <p>{new Date(budget.submitted_at).toLocaleString("id-ID")}</p>
+                    </div>
+                  ) : null}
+                  {budget.rejection_reason ? (
+                    <div className="rejection-alert">
+                      <span className="muted">Alasan Penolakan</span>
+                      <p>{budget.rejection_reason}</p>
+                    </div>
+                  ) : null}
+                  {budget.approved_at ? (
+                    <div>
+                      <span className="muted">Disetujui</span>
+                      <p>{new Date(budget.approved_at).toLocaleString("id-ID")}</p>
                     </div>
                   ) : null}
                 </div>

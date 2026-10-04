@@ -38,7 +38,13 @@ PHASE2B1_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("annual_budgets.submit", "Ajukan Anggaran Tahunan", "annual_budgets"),
 )
 
-ALL_BOOTSTRAP_PERMISSIONS = FOUNDATION_PERMISSIONS + PHASE2A_PERMISSIONS + PHASE2B1_PERMISSIONS
+PHASE2B2_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("annual_budgets.approve", "Setujui atau Tolak Anggaran Tahunan", "annual_budgets"),
+)
+
+ALL_BOOTSTRAP_PERMISSIONS = (
+    FOUNDATION_PERMISSIONS + PHASE2A_PERMISSIONS + PHASE2B1_PERMISSIONS + PHASE2B2_PERMISSIONS
+)
 
 PHASE2A_VIEW_PERMISSIONS = (
     "fiscal_years.view",
@@ -50,6 +56,7 @@ PHASE2A_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2A_PERMISSI
 
 PHASE2B1_VIEW_PERMISSIONS = ("annual_budgets.view",)
 PHASE2B1_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2B1_PERMISSIONS)
+PHASE2B2_APPROVER_PERMISSIONS = tuple(code for code, _, _ in PHASE2B2_PERMISSIONS)
 
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
@@ -92,7 +99,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         "Template pimpinan/approver tingkat manajemen.",
         ("settings.view", "organization_units.view")
         + PHASE2A_VIEW_PERMISSIONS
-        + PHASE2B1_VIEW_PERMISSIONS,
+        + PHASE2B1_VIEW_PERMISSIONS
+        + PHASE2B2_APPROVER_PERMISSIONS,
     ),
     (
         "AUDITOR",

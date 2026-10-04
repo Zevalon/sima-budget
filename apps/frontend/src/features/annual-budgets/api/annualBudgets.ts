@@ -6,6 +6,10 @@ export function listAnnualBudgets(fiscalYearId?: string): Promise<AnnualBudget[]
   return apiRequest<AnnualBudget[]>(`/annual-budgets${query}`);
 }
 
+export function listPendingAnnualBudgets(): Promise<AnnualBudget[]> {
+  return apiRequest<AnnualBudget[]>("/annual-budget-approvals/pending");
+}
+
 export function createAnnualBudget(payload: {
   fiscal_year_id: string;
   amount: string;
@@ -33,6 +37,25 @@ export function submitAnnualBudget(annualBudgetId: string): Promise<AnnualBudget
   return apiRequest<AnnualBudget>(
     `/annual-budgets/${annualBudgetId}/submit`,
     { method: "POST" },
+    { csrf: true },
+  );
+}
+
+export function approveAnnualBudget(
+  annualBudgetId: string,
+  decisionNote: string | null,
+): Promise<AnnualBudget> {
+  return apiRequest<AnnualBudget>(
+    `/annual-budgets/${annualBudgetId}/approve`,
+    { method: "POST", body: JSON.stringify({ decision_note: decisionNote }) },
+    { csrf: true },
+  );
+}
+
+export function rejectAnnualBudget(annualBudgetId: string, reason: string): Promise<AnnualBudget> {
+  return apiRequest<AnnualBudget>(
+    `/annual-budgets/${annualBudgetId}/reject`,
+    { method: "POST", body: JSON.stringify({ reason }) },
     { csrf: true },
   );
 }

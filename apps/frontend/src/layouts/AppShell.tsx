@@ -22,7 +22,11 @@ const navigation: NavigationItem[] = [
   },
   { label: "Rencana Anggaran", to: "#", disabled: true },
   { label: "Realisasi", to: "#", disabled: true },
-  { label: "Approval", to: "#", disabled: true },
+  {
+    label: "Approval",
+    to: "/app/approvals/annual-budgets",
+    permissionAnyOf: ["annual_budgets.approve"],
+  },
   { label: "Laporan", to: "#", disabled: true },
   {
     label: "Master Data",
