@@ -8,6 +8,8 @@ import { LoginPage } from "../features/auth/pages/LoginPage";
 import { PermissionRoute } from "../features/auth/PermissionRoute";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
+import { AuditLogPage } from "../features/foundation/pages/AuditLogPage";
+import { SettingsPage } from "../features/foundation/pages/SettingsPage";
 import { NotFoundPage } from "../features/system/pages/NotFoundPage";
 import { AppShell } from "../layouts/AppShell";
 
@@ -34,7 +36,14 @@ export const router = createBrowserRouter([
           {
             element: (
               <PermissionRoute
-                anyOf={["users.view", "roles.view", "permissions.view", "organization_units.view"]}
+                anyOf={[
+                  "users.view",
+                  "roles.view",
+                  "permissions.view",
+                  "organization_units.view",
+                  "settings.view",
+                  "audit.view",
+                ]}
               />
             ),
             children: [
@@ -68,6 +77,24 @@ export const router = createBrowserRouter([
               {
                 path: "administration/organization-units",
                 element: <OrganizationUnitsPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["settings.view"]} />,
+            children: [
+              {
+                path: "administration/settings",
+                element: <SettingsPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["audit.view"]} />,
+            children: [
+              {
+                path: "administration/audit",
+                element: <AuditLogPage />,
               },
             ],
           },

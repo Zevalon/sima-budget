@@ -23,6 +23,18 @@ const sections = [
     href: "/app/administration/organization-units",
     permission: "organization_units.view",
   },
+  {
+    title: "Pengaturan Aplikasi",
+    description: "Kelola branding dan kebijakan dasar deployment SIMA.",
+    href: "/app/administration/settings",
+    permission: "settings.view",
+  },
+  {
+    title: "Audit Log",
+    description: "Tinjau aktivitas keamanan dan perubahan data penting.",
+    href: "/app/administration/audit",
+    permission: "audit.view",
+  },
 ] as const;
 
 export function AdministrationHomePage() {
