@@ -3200,6 +3200,332 @@
         }
       }
     },
+    "/api/v1/realizations/context": {
+      "get": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Realization Context Endpoint",
+        "operationId": "realization_context_endpoint_api_v1_realizations_context_get",
+        "parameters": [
+          {
+            "name": "fiscal_year_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Fiscal Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationContextResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/realizations": {
+      "get": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Realizations Endpoint",
+        "operationId": "realizations_endpoint_api_v1_realizations_get",
+        "parameters": [
+          {
+            "name": "fiscal_year_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Fiscal Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/RealizationResponse"
+                  },
+                  "title": "Response Realizations Endpoint Api V1 Realizations Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Create Realization Endpoint",
+        "operationId": "create_realization_endpoint_api_v1_realizations_post",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizationCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/realizations/{realization_id}": {
+      "get": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Realization Detail Endpoint",
+        "operationId": "realization_detail_endpoint_api_v1_realizations__realization_id__get",
+        "parameters": [
+          {
+            "name": "realization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Realization Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Update Realization Endpoint",
+        "operationId": "update_realization_endpoint_api_v1_realizations__realization_id__patch",
+        "parameters": [
+          {
+            "name": "realization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Realization Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizationUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/realizations/{realization_id}/post": {
+      "post": {
+        "tags": [
+          "realizations"
+        ],
+        "summary": "Post Realization Endpoint",
+        "operationId": "post_realization_endpoint_api_v1_realizations__realization_id__post_post",
+        "parameters": [
+          {
+            "name": "realization_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Realization Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/RealizationPostRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/RealizationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "tags": [
@@ -5932,6 +6258,454 @@
         },
         "type": "object",
         "title": "ReadinessResponse"
+      },
+      "RealizationContextResponse": {
+        "properties": {
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "fiscal_year_code": {
+            "type": "string",
+            "title": "Fiscal Year Code"
+          },
+          "fiscal_year_status": {
+            "$ref": "#/components/schemas/FiscalYearStatus"
+          },
+          "scope_approved_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Approved Amount"
+          },
+          "scope_realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Realized Amount"
+          },
+          "scope_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Draft Pipeline Amount"
+          },
+          "scope_remaining_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Remaining Amount"
+          },
+          "plans": {
+            "items": {
+              "$ref": "#/components/schemas/RealizationPlanOption"
+            },
+            "type": "array",
+            "title": "Plans"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fiscal_year_id",
+          "fiscal_year_code",
+          "fiscal_year_status",
+          "scope_approved_amount",
+          "scope_realized_amount",
+          "scope_draft_pipeline_amount",
+          "scope_remaining_amount",
+          "plans"
+        ],
+        "title": "RealizationContextResponse"
+      },
+      "RealizationCreateRequest": {
+        "properties": {
+          "budget_plan_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Budget Plan Id"
+          },
+          "realization_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Realization Date"
+          },
+          "reference_number": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Reference Number"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "vendor_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 250
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Name"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,21}0*$)\\d{0,18}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "budget_plan_id",
+          "realization_date",
+          "reference_number",
+          "description",
+          "amount"
+        ],
+        "title": "RealizationCreateRequest"
+      },
+      "RealizationPlanOption": {
+        "properties": {
+          "budget_plan_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Budget Plan Id"
+          },
+          "plan_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Plan Version Id"
+          },
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "organization_unit_code": {
+            "type": "string",
+            "title": "Organization Unit Code"
+          },
+          "organization_unit_name": {
+            "type": "string",
+            "title": "Organization Unit Name"
+          },
+          "plan_number": {
+            "type": "string",
+            "title": "Plan Number"
+          },
+          "title": {
+            "type": "string",
+            "title": "Title"
+          },
+          "approved_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Approved Amount"
+          },
+          "realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realized Amount"
+          },
+          "draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Draft Pipeline Amount"
+          },
+          "remaining_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Remaining Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "budget_plan_id",
+          "plan_version_id",
+          "organization_unit_id",
+          "organization_unit_code",
+          "organization_unit_name",
+          "plan_number",
+          "title",
+          "approved_amount",
+          "realized_amount",
+          "draft_pipeline_amount",
+          "remaining_amount"
+        ],
+        "title": "RealizationPlanOption"
+      },
+      "RealizationPostRequest": {
+        "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_row_version"
+        ],
+        "title": "RealizationPostRequest"
+      },
+      "RealizationResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "fiscal_year_code": {
+            "type": "string",
+            "title": "Fiscal Year Code"
+          },
+          "budget_plan_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Budget Plan Id"
+          },
+          "plan_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Plan Version Id"
+          },
+          "plan_number": {
+            "type": "string",
+            "title": "Plan Number"
+          },
+          "plan_title": {
+            "type": "string",
+            "title": "Plan Title"
+          },
+          "plan_approved_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Plan Approved Amount"
+          },
+          "plan_realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Plan Realized Amount"
+          },
+          "plan_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Plan Draft Pipeline Amount"
+          },
+          "plan_remaining_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Plan Remaining Amount"
+          },
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "organization_unit_code": {
+            "type": "string",
+            "title": "Organization Unit Code"
+          },
+          "organization_unit_name": {
+            "type": "string",
+            "title": "Organization Unit Name"
+          },
+          "realization_number": {
+            "type": "string",
+            "title": "Realization Number"
+          },
+          "status": {
+            "$ref": "#/components/schemas/RealizationStatus"
+          },
+          "realization_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Realization Date"
+          },
+          "reference_number": {
+            "type": "string",
+            "title": "Reference Number"
+          },
+          "description": {
+            "type": "string",
+            "title": "Description"
+          },
+          "vendor_name": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Name"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "row_version": {
+            "type": "integer",
+            "title": "Row Version"
+          },
+          "created_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Created By"
+          },
+          "posted_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted By"
+          },
+          "posted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Posted At"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fiscal_year_id",
+          "fiscal_year_code",
+          "budget_plan_id",
+          "plan_version_id",
+          "plan_number",
+          "plan_title",
+          "plan_approved_amount",
+          "plan_realized_amount",
+          "plan_draft_pipeline_amount",
+          "plan_remaining_amount",
+          "organization_unit_id",
+          "organization_unit_code",
+          "organization_unit_name",
+          "realization_number",
+          "status",
+          "realization_date",
+          "reference_number",
+          "description",
+          "vendor_name",
+          "amount",
+          "row_version",
+          "created_by",
+          "posted_by",
+          "posted_at",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "RealizationResponse"
+      },
+      "RealizationStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "POSTED",
+          "REVERSED",
+          "CANCELLED"
+        ],
+        "title": "RealizationStatus"
+      },
+      "RealizationUpdateRequest": {
+        "properties": {
+          "expected_row_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Row Version"
+          },
+          "realization_date": {
+            "type": "string",
+            "format": "date",
+            "title": "Realization Date"
+          },
+          "reference_number": {
+            "type": "string",
+            "maxLength": 120,
+            "minLength": 1,
+            "title": "Reference Number"
+          },
+          "description": {
+            "type": "string",
+            "maxLength": 500,
+            "minLength": 1,
+            "title": "Description"
+          },
+          "vendor_name": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 250
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Vendor Name"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,21}0*$)\\d{0,18}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "expected_row_version",
+          "realization_date",
+          "reference_number",
+          "description",
+          "amount"
+        ],
+        "title": "RealizationUpdateRequest"
       },
       "RoleAssignmentInput": {
         "properties": {

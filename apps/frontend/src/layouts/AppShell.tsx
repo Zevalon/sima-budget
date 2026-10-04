@@ -30,7 +30,11 @@ const navigation: NavigationItem[] = [
     to: "/app/budget-plans",
     permissionAnyOf: ["budget_plans.view"],
   },
-  { label: "Realisasi", to: "#", disabled: true },
+  {
+    label: "Realisasi",
+    to: "/app/realizations",
+    permissionAnyOf: ["realizations.view"],
+  },
   {
     label: "Approval",
     to: "/app/approvals",

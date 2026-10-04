@@ -25,3 +25,8 @@ Implementation adds:
 ## Next after Phase 3D validation
 
 Create CP-08 — Phase 3 Budget Plan Complete, then begin Phase 4 / next roadmap domain.
+
+
+## Phase 4A — Realization Core
+
+Status: implementation in validation. Adds scoped realization DRAFT → POSTED against exact APPROVED Budget Plan versions, strict cumulative realization ceiling, optimistic concurrency, audit trail, and cumulative development seed extension.
