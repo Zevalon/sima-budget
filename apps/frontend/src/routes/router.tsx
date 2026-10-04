@@ -5,6 +5,7 @@ import { OrganizationUnitsPage } from "../features/administration/pages/Organiza
 import { RolesPage } from "../features/administration/pages/RolesPage";
 import { UsersPage } from "../features/administration/pages/UsersPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
+import { AnnualBudgetsPage } from "../features/annual-budgets/pages/AnnualBudgetsPage";
 import { PermissionRoute } from "../features/auth/PermissionRoute";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute";
 import { BudgetCategoriesPage } from "../features/budget-foundation/pages/BudgetCategoriesPage";
@@ -36,6 +37,15 @@ export const router = createBrowserRouter([
           {
             path: "dashboard",
             element: <DashboardPage />,
+          },
+          {
+            element: <PermissionRoute anyOf={["annual_budgets.view"]} />,
+            children: [
+              {
+                path: "annual-budgets",
+                element: <AnnualBudgetsPage />,
+              },
+            ],
           },
           {
             element: (

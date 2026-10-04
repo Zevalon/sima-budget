@@ -118,8 +118,28 @@ async def create_budget_admin() -> None:
         await session.commit()
 
 
+async def get_preexisting_active_fiscal_year_id():
+    """Return a real ACTIVE fiscal year, if one exists outside verifier data."""
+    session_factory = get_session_factory()
+    async with session_factory() as session:
+        organization = await session.scalar(
+            select(Organization).where(Organization.code == "DEFAULT")
+        )
+        if organization is None:
+            raise RuntimeError("Default organization belum tersedia.")
+
+        return await session.scalar(
+            select(FiscalYear.id).where(
+                FiscalYear.organization_id == organization.id,
+                FiscalYear.status == "ACTIVE",
+                FiscalYear.code.not_in(FISCAL_CODES),
+            )
+        )
+
+
 async def verify() -> None:
     await create_budget_admin()
+    preexisting_active_id = await get_preexisting_active_fiscal_year_id()
     transport = ASGITransport(app=app)
 
     async with AsyncClient(
@@ -188,12 +208,16 @@ async def verify() -> None:
             json={"target_status": "PLANNING"},
         )
         assert planning1.status_code == 200, planning1.text
+
         active1 = await client.post(
             f"/api/v1/fiscal-years/{fy1_id}/transition",
             headers=headers,
             json={"target_status": "ACTIVE"},
         )
-        assert active1.status_code == 200, active1.text
+        if preexisting_active_id is None:
+            assert active1.status_code == 200, active1.text
+        else:
+            assert active1.status_code == 409, active1.text
 
         fy2 = await client.post(
             "/api/v1/fiscal-years",
@@ -207,6 +231,7 @@ async def verify() -> None:
         )
         assert fy2.status_code == 201, fy2.text
         fy2_id = fy2.json()["id"]
+
         planning2 = await client.post(
             f"/api/v1/fiscal-years/{fy2_id}/transition",
             headers=headers,
@@ -221,61 +246,74 @@ async def verify() -> None:
         )
         assert second_active.status_code == 409, second_active.text
 
-        close1 = await client.post(
-            f"/api/v1/fiscal-years/{fy1_id}/transition",
-            headers=headers,
-            json={"target_status": "CLOSED", "reason": "Verification close"},
-        )
-        assert close1.status_code == 200, close1.text
+        if preexisting_active_id is None:
+            close1 = await client.post(
+                f"/api/v1/fiscal-years/{fy1_id}/transition",
+                headers=headers,
+                json={"target_status": "CLOSED", "reason": "Verification close"},
+            )
+            assert close1.status_code == 200, close1.text
 
-        activate2 = await client.post(
-            f"/api/v1/fiscal-years/{fy2_id}/transition",
-            headers=headers,
-            json={"target_status": "ACTIVE"},
-        )
-        assert activate2.status_code == 200, activate2.text
+            activate2 = await client.post(
+                f"/api/v1/fiscal-years/{fy2_id}/transition",
+                headers=headers,
+                json={"target_status": "ACTIVE"},
+            )
+            assert activate2.status_code == 200, activate2.text
 
-        reopen_conflict = await client.post(
-            f"/api/v1/fiscal-years/{fy1_id}/reopen",
-            headers=headers,
-            json={"reason": "Verification reopen while another year is active"},
-        )
-        assert reopen_conflict.status_code == 409, reopen_conflict.text
+            reopen_conflict = await client.post(
+                f"/api/v1/fiscal-years/{fy1_id}/reopen",
+                headers=headers,
+                json={"reason": "Verification reopen while another year is active"},
+            )
+            assert reopen_conflict.status_code == 409, reopen_conflict.text
 
-        close2 = await client.post(
-            f"/api/v1/fiscal-years/{fy2_id}/transition",
-            headers=headers,
-            json={"target_status": "CLOSED"},
-        )
-        assert close2.status_code == 200, close2.text
+            close2 = await client.post(
+                f"/api/v1/fiscal-years/{fy2_id}/transition",
+                headers=headers,
+                json={"target_status": "CLOSED"},
+            )
+            assert close2.status_code == 200, close2.text
 
-        reopened = await client.post(
-            f"/api/v1/fiscal-years/{fy1_id}/reopen",
-            headers=headers,
-            json={"reason": "Verification controlled reopen"},
-        )
-        assert reopened.status_code == 200, reopened.text
-        assert reopened.json()["status"] == "ACTIVE"
-        assert reopened.json()["reopen_reason"] == "Verification controlled reopen"
+            reopened = await client.post(
+                f"/api/v1/fiscal-years/{fy1_id}/reopen",
+                headers=headers,
+                json={"reason": "Verification controlled reopen"},
+            )
+            assert reopened.status_code == 200, reopened.text
+            assert reopened.json()["status"] == "ACTIVE"
+            assert reopened.json()["reopen_reason"] == "Verification controlled reopen"
 
-        close_again = await client.post(
-            f"/api/v1/fiscal-years/{fy1_id}/transition",
-            headers=headers,
-            json={"target_status": "CLOSED"},
-        )
-        assert close_again.status_code == 200, close_again.text
-        archive1 = await client.post(
-            f"/api/v1/fiscal-years/{fy1_id}/transition",
-            headers=headers,
-            json={"target_status": "ARCHIVED"},
-        )
-        assert archive1.status_code == 200, archive1.text
-        archive2 = await client.post(
-            f"/api/v1/fiscal-years/{fy2_id}/transition",
-            headers=headers,
-            json={"target_status": "ARCHIVED"},
-        )
-        assert archive2.status_code == 200, archive2.text
+            close_again = await client.post(
+                f"/api/v1/fiscal-years/{fy1_id}/transition",
+                headers=headers,
+                json={"target_status": "CLOSED"},
+            )
+            assert close_again.status_code == 200, close_again.text
+
+            archive1 = await client.post(
+                f"/api/v1/fiscal-years/{fy1_id}/transition",
+                headers=headers,
+                json={"target_status": "ARCHIVED"},
+            )
+            assert archive1.status_code == 200, archive1.text
+
+            archive2 = await client.post(
+                f"/api/v1/fiscal-years/{fy2_id}/transition",
+                headers=headers,
+                json={"target_status": "ARCHIVED"},
+            )
+            assert archive2.status_code == 200, archive2.text
+
+            audit_action = "FISCAL_YEAR_REOPENED"
+        else:
+            invalid_reopen = await client.post(
+                f"/api/v1/fiscal-years/{fy1_id}/reopen",
+                headers=headers,
+                json={"reason": "Verification invalid reopen"},
+            )
+            assert invalid_reopen.status_code == 409, invalid_reopen.text
+            audit_action = "FISCAL_YEAR_TRANSITIONED"
 
         category = await client.post(
             "/api/v1/master-data/budget-categories",
@@ -327,7 +365,7 @@ async def verify() -> None:
 
         audit_api = await client.get(
             "/api/v1/audit",
-            params={"action": "FISCAL_YEAR_REOPENED"},
+            params={"action": audit_action},
         )
         assert audit_api.status_code == 403, audit_api.text
 
@@ -335,7 +373,7 @@ async def verify() -> None:
     async with session_factory() as session:
         audit_event = await session.scalar(
             select(AuditLog).where(
-                AuditLog.action == "FISCAL_YEAR_REOPENED",
+                AuditLog.action == audit_action,
                 AuditLog.entity_id == fy1_id,
             )
         )

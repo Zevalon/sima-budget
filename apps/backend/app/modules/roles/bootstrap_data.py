@@ -30,7 +30,15 @@ PHASE2A_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("units_of_measure.manage", "Kelola Satuan", "budget_foundation"),
 )
 
-ALL_BOOTSTRAP_PERMISSIONS = FOUNDATION_PERMISSIONS + PHASE2A_PERMISSIONS
+
+PHASE2B1_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("annual_budgets.view", "Lihat Anggaran Tahunan", "annual_budgets"),
+    ("annual_budgets.create", "Buat Anggaran Tahunan", "annual_budgets"),
+    ("annual_budgets.update", "Ubah Anggaran Tahunan", "annual_budgets"),
+    ("annual_budgets.submit", "Ajukan Anggaran Tahunan", "annual_budgets"),
+)
+
+ALL_BOOTSTRAP_PERMISSIONS = FOUNDATION_PERMISSIONS + PHASE2A_PERMISSIONS + PHASE2B1_PERMISSIONS
 
 PHASE2A_VIEW_PERMISSIONS = (
     "fiscal_years.view",
@@ -40,12 +48,17 @@ PHASE2A_VIEW_PERMISSIONS = (
 
 PHASE2A_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2A_PERMISSIONS)
 
+PHASE2B1_VIEW_PERMISSIONS = ("annual_budgets.view",)
+PHASE2B1_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2B1_PERMISSIONS)
+
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
         "SYSTEM_ADMIN",
         "System Administrator",
         "Mengelola konfigurasi sistem, pengguna, role, permission, dan struktur organisasi.",
-        tuple(code for code, _, _ in FOUNDATION_PERMISSIONS) + PHASE2A_VIEW_PERMISSIONS,
+        tuple(code for code, _, _ in FOUNDATION_PERMISSIONS)
+        + PHASE2A_VIEW_PERMISSIONS
+        + PHASE2B1_VIEW_PERMISSIONS,
     ),
     (
         "BUDGET_ADMIN",
@@ -58,7 +71,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "roles.view",
             "permissions.view",
         )
-        + PHASE2A_BUDGET_ADMIN_PERMISSIONS,
+        + PHASE2A_BUDGET_ADMIN_PERMISSIONS
+        + PHASE2B1_BUDGET_ADMIN_PERMISSIONS,
     ),
     (
         "UNIT_PIC",
@@ -76,7 +90,9 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         "MANAGEMENT_APPROVER",
         "Management Approver",
         "Template pimpinan/approver tingkat manajemen.",
-        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
+        ("settings.view", "organization_units.view")
+        + PHASE2A_VIEW_PERMISSIONS
+        + PHASE2B1_VIEW_PERMISSIONS,
     ),
     (
         "AUDITOR",
@@ -90,7 +106,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "organization_units.view",
             "audit.view",
         )
-        + PHASE2A_VIEW_PERMISSIONS,
+        + PHASE2A_VIEW_PERMISSIONS
+        + PHASE2B1_VIEW_PERMISSIONS,
     ),
     (
         "VIEWER",
