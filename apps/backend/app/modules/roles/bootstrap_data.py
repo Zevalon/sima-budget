@@ -18,47 +18,70 @@ FOUNDATION_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("sessions.revoke", "Cabut Session Pengguna", "auth"),
 )
 
+PHASE2A_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("fiscal_years.view", "Lihat Tahun Anggaran", "budget_foundation"),
+    ("fiscal_years.create", "Buat Tahun Anggaran", "budget_foundation"),
+    ("fiscal_years.update", "Ubah Tahun Anggaran", "budget_foundation"),
+    ("fiscal_years.transition", "Ubah Status Tahun Anggaran", "budget_foundation"),
+    ("fiscal_years.reopen", "Buka Kembali Tahun Anggaran", "budget_foundation"),
+    ("budget_categories.view", "Lihat Kategori Anggaran", "budget_foundation"),
+    ("budget_categories.manage", "Kelola Kategori Anggaran", "budget_foundation"),
+    ("units_of_measure.view", "Lihat Satuan", "budget_foundation"),
+    ("units_of_measure.manage", "Kelola Satuan", "budget_foundation"),
+)
+
+ALL_BOOTSTRAP_PERMISSIONS = FOUNDATION_PERMISSIONS + PHASE2A_PERMISSIONS
+
+PHASE2A_VIEW_PERMISSIONS = (
+    "fiscal_years.view",
+    "budget_categories.view",
+    "units_of_measure.view",
+)
+
+PHASE2A_BUDGET_ADMIN_PERMISSIONS = tuple(code for code, _, _ in PHASE2A_PERMISSIONS)
+
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
         "SYSTEM_ADMIN",
         "System Administrator",
         "Mengelola konfigurasi sistem, pengguna, role, permission, dan struktur organisasi.",
-        tuple(code for code, _, _ in FOUNDATION_PERMISSIONS),
+        tuple(code for code, _, _ in FOUNDATION_PERMISSIONS) + PHASE2A_VIEW_PERMISSIONS,
     ),
     (
         "BUDGET_ADMIN",
         "Budget Administrator",
-        "Template role untuk administrator anggaran. Permission anggaran ditambahkan pada Phase 2.",
+        "Mengelola fondasi dan administrasi domain anggaran.",
         (
             "settings.view",
             "organization_units.view",
             "users.view",
             "roles.view",
             "permissions.view",
-        ),
+        )
+        + PHASE2A_BUDGET_ADMIN_PERMISSIONS,
     ),
     (
         "UNIT_PIC",
         "Unit PIC",
         "Template user operasional unit. Permission rencana anggaran ditambahkan pada Phase 3.",
-        ("settings.view", "organization_units.view"),
+        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
     ),
     (
         "UNIT_APPROVER",
         "Unit Approver",
         "Template approver unit. Permission approval ditambahkan pada Phase 4.",
-        ("settings.view", "organization_units.view"),
+        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
     ),
     (
         "MANAGEMENT_APPROVER",
         "Management Approver",
         "Template pimpinan/approver tingkat manajemen.",
-        ("settings.view", "organization_units.view"),
+        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
     ),
     (
         "AUDITOR",
         "Auditor",
-        "Akses pemeriksaan read-only terhadap struktur, user, dan audit.",
+        "Akses pemeriksaan read-only terhadap struktur, user, audit, dan fondasi anggaran.",
         (
             "settings.view",
             "users.view",
@@ -66,12 +89,13 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
             "permissions.view",
             "organization_units.view",
             "audit.view",
-        ),
+        )
+        + PHASE2A_VIEW_PERMISSIONS,
     ),
     (
         "VIEWER",
         "Viewer",
         "Akses baca terbatas.",
-        ("settings.view", "organization_units.view"),
+        ("settings.view", "organization_units.view") + PHASE2A_VIEW_PERMISSIONS,
     ),
 )

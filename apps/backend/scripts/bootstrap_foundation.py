@@ -5,7 +5,7 @@ from sqlalchemy import select
 from app.core.database import get_session_factory
 from app.modules.organizations.bootstrap_data import DEFAULT_UNIT_TYPES
 from app.modules.organizations.models import Organization, OrganizationUnit, OrganizationUnitType
-from app.modules.roles.bootstrap_data import DEFAULT_ROLE_TEMPLATES, FOUNDATION_PERMISSIONS
+from app.modules.roles.bootstrap_data import ALL_BOOTSTRAP_PERMISSIONS, DEFAULT_ROLE_TEMPLATES
 from app.modules.roles.models import Permission, Role, RolePermission
 from app.modules.settings.models import ApplicationSetting
 
@@ -83,7 +83,7 @@ async def ensure_organization() -> Organization:
             )
 
         permissions_by_code: dict[str, Permission] = {}
-        for code, name, module in FOUNDATION_PERMISSIONS:
+        for code, name, module in ALL_BOOTSTRAP_PERMISSIONS:
             permission = await session.scalar(select(Permission).where(Permission.code == code))
             if permission is None:
                 permission = Permission(code=code, name=name, module=module)

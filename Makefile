@@ -1,4 +1,4 @@
-.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify bootstrap-admin phase0-check phase1a-check phase1b-check phase1c1-check phase1c2-check phase1d1-check phase1d2-check
+.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify bootstrap-admin phase0-check phase1a-check phase1b-check phase1c1-check phase1c2-check phase1d1-check phase1d2-check phase2a-check
 
 help:
 	@echo "SIMA development commands"
@@ -22,6 +22,7 @@ help:
 	@echo "  make phase1c2-check         Run Phase 1C1 regression + admin mutation checks"
 	@echo "  make phase1d1-check         Run Phase 1C2 regression + settings/audit checks"
 	@echo "  make phase1d2-check         Run Phase 1D1 regression + final hardening checks"
+	@echo "  make phase2a-check          Run Phase 1 regression + fiscal/master foundation checks"
 
 bootstrap:
 	./scripts/bootstrap-dev.sh
@@ -89,3 +90,6 @@ phase1d1-check:
 
 phase1d2-check:
 	./scripts/check-phase1d2.sh
+
+phase2a-check:
+	./scripts/check-phase2a.sh

@@ -7,6 +7,10 @@ import { UsersPage } from "../features/administration/pages/UsersPage";
 import { LoginPage } from "../features/auth/pages/LoginPage";
 import { PermissionRoute } from "../features/auth/PermissionRoute";
 import { ProtectedRoute } from "../features/auth/ProtectedRoute";
+import { BudgetCategoriesPage } from "../features/budget-foundation/pages/BudgetCategoriesPage";
+import { FiscalYearsPage } from "../features/budget-foundation/pages/FiscalYearsPage";
+import { MasterDataHomePage } from "../features/budget-foundation/pages/MasterDataHomePage";
+import { UnitsOfMeasurePage } from "../features/budget-foundation/pages/UnitsOfMeasurePage";
 import { DashboardPage } from "../features/dashboard/pages/DashboardPage";
 import { AuditLogPage } from "../features/foundation/pages/AuditLogPage";
 import { SettingsPage } from "../features/foundation/pages/SettingsPage";
@@ -32,6 +36,46 @@ export const router = createBrowserRouter([
           {
             path: "dashboard",
             element: <DashboardPage />,
+          },
+          {
+            element: (
+              <PermissionRoute
+                anyOf={["fiscal_years.view", "budget_categories.view", "units_of_measure.view"]}
+              />
+            ),
+            children: [
+              {
+                path: "master-data",
+                element: <MasterDataHomePage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["fiscal_years.view"]} />,
+            children: [
+              {
+                path: "master-data/fiscal-years",
+                element: <FiscalYearsPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["budget_categories.view"]} />,
+            children: [
+              {
+                path: "master-data/budget-categories",
+                element: <BudgetCategoriesPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["units_of_measure.view"]} />,
+            children: [
+              {
+                path: "master-data/units-of-measure",
+                element: <UnitsOfMeasurePage />,
+              },
+            ],
           },
           {
             element: (
