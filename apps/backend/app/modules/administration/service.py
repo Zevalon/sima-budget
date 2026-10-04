@@ -1,7 +1,8 @@
+from datetime import UTC, date, datetime
 from uuid import UUID
 
 from fastapi import HTTPException, status
-from sqlalchemy import delete, or_, select
+from sqlalchemy import delete, func, or_, select, update
 from sqlalchemy.ext.asyncio import AsyncSession
 
 from app.core.security import hash_password
@@ -42,6 +43,128 @@ async def get_default_organization(session: AsyncSession) -> Organization:
     if organization is None:
         raise RuntimeError("Default organization belum tersedia.")
     return organization
+
+
+async def _system_admin_role(session: AsyncSession, organization_id: UUID) -> Role:
+    role = await session.scalar(
+        select(Role).where(
+            Role.organization_id == organization_id,
+            Role.code == "SYSTEM_ADMIN",
+        )
+    )
+    if role is None:
+        raise RuntimeError("System Administrator role belum tersedia.")
+    return role
+
+
+async def _has_active_system_admin_all(
+    session: AsyncSession,
+    *,
+    organization_id: UUID,
+    user_id: UUID,
+) -> bool:
+    now = datetime.now(UTC)
+    assignment_id = await session.scalar(
+        select(UserRoleAssignment.id)
+        .join(Role, Role.id == UserRoleAssignment.role_id)
+        .join(User, User.id == UserRoleAssignment.user_id)
+        .where(
+            UserRoleAssignment.user_id == user_id,
+            Role.organization_id == organization_id,
+            Role.code == "SYSTEM_ADMIN",
+            Role.is_active.is_(True),
+            User.is_active.is_(True),
+            UserRoleAssignment.scope_type == "ALL",
+            or_(
+                UserRoleAssignment.valid_from.is_(None),
+                UserRoleAssignment.valid_from <= now,
+            ),
+            or_(
+                UserRoleAssignment.valid_until.is_(None),
+                UserRoleAssignment.valid_until > now,
+            ),
+        )
+        .limit(1)
+    )
+    return assignment_id is not None
+
+
+async def _count_other_active_system_admins(
+    session: AsyncSession,
+    *,
+    organization_id: UUID,
+    exclude_user_id: UUID,
+) -> int:
+    now = datetime.now(UTC)
+    count = await session.scalar(
+        select(func.count(func.distinct(UserRoleAssignment.user_id)))
+        .select_from(UserRoleAssignment)
+        .join(Role, Role.id == UserRoleAssignment.role_id)
+        .join(User, User.id == UserRoleAssignment.user_id)
+        .where(
+            UserRoleAssignment.user_id != exclude_user_id,
+            Role.organization_id == organization_id,
+            Role.code == "SYSTEM_ADMIN",
+            Role.is_active.is_(True),
+            User.is_active.is_(True),
+            UserRoleAssignment.scope_type == "ALL",
+            or_(
+                UserRoleAssignment.valid_from.is_(None),
+                UserRoleAssignment.valid_from <= now,
+            ),
+            or_(
+                UserRoleAssignment.valid_until.is_(None),
+                UserRoleAssignment.valid_until > now,
+            ),
+        )
+    )
+    return int(count or 0)
+
+
+async def _ensure_system_admin_continuity(
+    session: AsyncSession,
+    *,
+    organization_id: UUID,
+    user_id: UUID,
+    keeps_system_admin_all: bool,
+) -> None:
+    if keeps_system_admin_all:
+        return
+
+    currently_admin = await _has_active_system_admin_all(
+        session,
+        organization_id=organization_id,
+        user_id=user_id,
+    )
+    if not currently_admin:
+        return
+
+    other_admins = await _count_other_active_system_admins(
+        session,
+        organization_id=organization_id,
+        exclude_user_id=user_id,
+    )
+    if other_admins == 0:
+        raise conflict(
+            "Operasi ditolak karena organisasi harus memiliki minimal satu "
+            "System Administrator aktif dengan scope ALL."
+        )
+
+
+async def _revoke_user_sessions(
+    session: AsyncSession,
+    *,
+    user_id: UUID,
+) -> None:
+    now = datetime.now(UTC)
+    await session.execute(
+        update(UserSession)
+        .where(
+            UserSession.user_id == user_id,
+            UserSession.revoked_at.is_(None),
+        )
+        .values(revoked_at=now)
+    )
 
 
 async def ensure_user_identity_available(
@@ -324,8 +447,15 @@ async def deactivate_user(
     if user.id == actor_user_id:
         raise conflict("Administrator tidak dapat menonaktifkan akunnya sendiri.")
 
+    await _ensure_system_admin_continuity(
+        session,
+        organization_id=organization.id,
+        user_id=user.id,
+        keeps_system_admin_all=False,
+    )
+
     user.is_active = False
-    await session.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    await _revoke_user_sessions(session, user_id=user.id)
     record_audit(
         session,
         organization_id=organization.id,
@@ -353,7 +483,7 @@ async def reset_user_password(
     user.failed_login_attempts = 0
     user.is_locked = False
     user.locked_until = None
-    await session.execute(delete(UserSession).where(UserSession.user_id == user.id))
+    await _revoke_user_sessions(session, user_id=user.id)
     record_audit(
         session,
         organization_id=organization.id,
@@ -377,6 +507,18 @@ async def update_user_roles(
     if user is None:
         raise not_found("User tidak ditemukan.")
 
+    system_admin = await _system_admin_role(session, organization.id)
+    keeps_system_admin_all = any(
+        assignment.role_id == system_admin.id and assignment.scope_type == "ALL"
+        for assignment in assignments
+    )
+    await _ensure_system_admin_continuity(
+        session,
+        organization_id=organization.id,
+        user_id=user.id,
+        keeps_system_admin_all=keeps_system_admin_all,
+    )
+
     await replace_user_role_assignments(
         session,
         organization_id=organization.id,
@@ -397,6 +539,34 @@ async def update_user_roles(
     if detail is None:
         raise RuntimeError("User tidak dapat dibaca kembali.")
     return detail
+
+
+async def revoke_user_sessions(
+    session: AsyncSession,
+    *,
+    user_id: UUID,
+    actor_user_id: UUID,
+) -> None:
+    organization = await get_default_organization(session)
+    user = await session.scalar(select(User).where(User.id == user_id))
+    if user is None:
+        raise not_found("User tidak ditemukan.")
+    if user.id == actor_user_id:
+        raise conflict(
+            "Gunakan logout untuk session akun sendiri. Cabut session ditujukan "
+            "untuk akun pengguna lain."
+        )
+
+    await _revoke_user_sessions(session, user_id=user.id)
+    record_audit(
+        session,
+        organization_id=organization.id,
+        actor_user_id=actor_user_id,
+        action="USER_SESSIONS_REVOKED",
+        entity_type="user",
+        entity_id=user.id,
+    )
+    await session.commit()
 
 
 async def set_role_permissions(
@@ -495,6 +665,8 @@ async def update_role(
     )
     if role is None:
         raise not_found("Role tidak ditemukan.")
+    if role.is_system_role and payload.is_active is False:
+        raise conflict("System role bawaan tidak dapat dinonaktifkan.")
 
     before = {
         "name": role.name,
@@ -551,6 +723,10 @@ async def replace_role_permissions(
     )
     if role is None:
         raise not_found("Role tidak ditemukan.")
+    if role.is_system_role:
+        raise conflict(
+            "Permission system role bawaan dikelola oleh aplikasi dan tidak dapat diubah manual."
+        )
 
     await set_role_permissions(
         session,
@@ -772,6 +948,45 @@ async def deactivate_organization_unit(
     )
     if active_child is not None:
         raise conflict("Unit masih memiliki child aktif.")
+
+    active_member = await session.scalar(
+        select(User.id)
+        .join(UserUnitMembership, UserUnitMembership.user_id == User.id)
+        .where(
+            UserUnitMembership.organization_unit_id == unit.id,
+            User.is_active.is_(True),
+            or_(
+                UserUnitMembership.end_at.is_(None),
+                UserUnitMembership.end_at >= date.today(),
+            ),
+        )
+        .limit(1)
+    )
+    if active_member is not None:
+        raise conflict("Unit masih digunakan sebagai membership oleh pengguna aktif.")
+
+    now = datetime.now(UTC)
+    active_scope = await session.scalar(
+        select(UserRoleAssignment.id)
+        .join(User, User.id == UserRoleAssignment.user_id)
+        .join(Role, Role.id == UserRoleAssignment.role_id)
+        .where(
+            UserRoleAssignment.scope_unit_id == unit.id,
+            User.is_active.is_(True),
+            Role.is_active.is_(True),
+            or_(
+                UserRoleAssignment.valid_from.is_(None),
+                UserRoleAssignment.valid_from <= now,
+            ),
+            or_(
+                UserRoleAssignment.valid_until.is_(None),
+                UserRoleAssignment.valid_until > now,
+            ),
+        )
+        .limit(1)
+    )
+    if active_scope is not None:
+        raise conflict("Unit masih digunakan sebagai scope role oleh pengguna aktif.")
 
     unit.is_active = False
     record_audit(

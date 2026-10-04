@@ -39,6 +39,7 @@ from app.modules.administration.service import (
     not_found,
     replace_role_permissions,
     reset_user_password,
+    revoke_user_sessions,
     update_organization_unit,
     update_role,
     update_user,
@@ -119,6 +120,25 @@ async def deactivate_user_endpoint(
     ],
 ) -> None:
     await deactivate_user(
+        session,
+        user_id=user_id,
+        actor_user_id=context.user.id,
+    )
+    response.status_code = status.HTTP_204_NO_CONTENT
+
+
+@router.post("/users/{user_id}/revoke-sessions", status_code=status.HTTP_204_NO_CONTENT)
+async def revoke_user_sessions_endpoint(
+    user_id: UUID,
+    response: Response,
+    session: Annotated[AsyncSession, Depends(get_db_session)],
+    context: Annotated[AuthContext, Depends(require_csrf)],
+    _: Annotated[
+        AuthContext,
+        Depends(RequirePermission("sessions.revoke", require_all_scope=True)),
+    ],
+) -> None:
+    await revoke_user_sessions(
         session,
         user_id=user_id,
         actor_user_id=context.user.id,

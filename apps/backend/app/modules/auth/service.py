@@ -29,6 +29,7 @@ from app.modules.auth.schemas import (
     RoleGrantResponse,
     UnitMembershipResponse,
 )
+from app.modules.settings.service import get_application_setting
 from app.modules.users.models import User
 
 _dummy_password_hash = hash_password("SIMA-DUMMY-PASSWORD-DO-NOT-USE")
@@ -195,6 +196,7 @@ async def build_current_user_response(
 ) -> CurrentUserResponse:
     now = datetime.now(UTC)
     organization = await get_user_organization(session, user.id)
+    application_setting = await get_application_setting(session)
     role_rows = await get_active_role_grants(session, user.id, now)
     permissions = await get_effective_permission_codes(session, user.id, now)
     memberships = await get_unit_memberships(session, user.id)
@@ -206,6 +208,9 @@ async def build_current_user_response(
         full_name=user.full_name,
         organization_id=organization.id,
         organization_name=organization.name,
+        application_name=application_setting.application_name,
+        application_short_name=application_setting.application_short_name,
+        organization_display_name=application_setting.organization_display_name,
         roles=[
             RoleGrantResponse(
                 role_code=role.code,

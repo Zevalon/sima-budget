@@ -1,5 +1,6 @@
-import { Navigate, Outlet } from "react-router-dom";
+import { Outlet } from "react-router-dom";
 
+import { AccessDeniedPage } from "../system/pages/AccessDeniedPage";
 import { useAuth } from "./auth-context";
 
 type PermissionRouteProps = {
@@ -12,7 +13,7 @@ export function PermissionRoute({ anyOf }: PermissionRouteProps) {
   const allowed = anyOf.some((permission) => permissions.has(permission));
 
   if (!allowed) {
-    return <Navigate to="/app/dashboard" replace />;
+    return <AccessDeniedPage />;
   }
 
   return <Outlet />;

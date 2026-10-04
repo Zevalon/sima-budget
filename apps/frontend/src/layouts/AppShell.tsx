@@ -20,7 +20,14 @@ const navigation: NavigationItem[] = [
   {
     label: "Administration",
     to: "/app/administration",
-    permissionAnyOf: ["users.view", "roles.view", "permissions.view", "organization_units.view"],
+    permissionAnyOf: [
+      "users.view",
+      "roles.view",
+      "permissions.view",
+      "organization_units.view",
+      "settings.view",
+      "audit.view",
+    ],
   },
 ];
 
@@ -51,8 +58,8 @@ export function AppShell() {
         <div className="brand">
           <div className="brand-mark">S</div>
           <div>
-            <strong>SIMA</strong>
-            <span>Monitoring Anggaran</span>
+            <strong>{user?.application_short_name ?? "SIMA"}</strong>
+            <span>{user?.application_name ?? "Sistem Informasi Monitoring Anggaran"}</span>
           </div>
         </div>
         <nav aria-label="Navigasi utama">
@@ -75,7 +82,11 @@ export function AppShell() {
         <header className="topbar">
           <div>
             <span className="muted">Organisasi</span>
-            <strong>{user?.organization_name ?? "Universitas / Organisasi"}</strong>
+            <strong>
+              {user?.organization_display_name ??
+                user?.organization_name ??
+                "Universitas / Organisasi"}
+            </strong>
           </div>
           <div className="topbar-actions">
             <label>
