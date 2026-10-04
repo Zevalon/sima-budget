@@ -175,6 +175,18 @@ export function UnitAllocationsPage() {
               <span className="muted">Sisa Belum Dialokasikan</span>
               <strong>{formatCurrency(activeOverview?.remaining_amount ?? "0.00")}</strong>
             </div>
+            <div>
+              <span className="muted">Committed Plan</span>
+              <strong>{formatCurrency(activeOverview?.committed_amount ?? "0.00")}</strong>
+            </div>
+            <div>
+              <span className="muted">Draft Pipeline</span>
+              <strong>{formatCurrency(activeOverview?.draft_pipeline_amount ?? "0.00")}</strong>
+            </div>
+            <div>
+              <span className="muted">Available untuk Plan</span>
+              <strong>{formatCurrency(activeOverview?.available_amount ?? "0.00")}</strong>
+            </div>
           </section>
 
           {loading ? <p className="muted">Memuat alokasi...</p> : null}
@@ -272,7 +284,18 @@ export function UnitAllocationsPage() {
                           <strong>{item.organization_unit_name}</strong>
                           <span className="muted">{item.organization_unit_code}</span>
                         </div>
-                        <strong>{formatCurrency(item.amount)}</strong>
+                        <div className="allocation-card-metrics">
+                          <strong>{formatCurrency(item.amount)}</strong>
+                          <span className="muted">
+                            Committed {formatCurrency(item.committed_amount)}
+                          </span>
+                          <span className="muted">
+                            Available {formatCurrency(item.available_amount)}
+                          </span>
+                          <span className="muted">
+                            Pipeline {formatCurrency(item.draft_pipeline_amount)}
+                          </span>
+                        </div>
                       </div>
                       {canUpdate && canMutate ? (
                         <form

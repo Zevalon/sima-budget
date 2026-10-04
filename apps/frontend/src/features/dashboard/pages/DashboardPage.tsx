@@ -110,6 +110,21 @@ export function DashboardPage() {
               <small>Masih tersedia untuk pembagian unit</small>
             </article>
             <article className="panel dashboard-metric">
+              <span className="muted">Committed Plan</span>
+              <strong>{formatCurrency(activeOverview?.committed_amount ?? "0.00")}</strong>
+              <small>Rencana APPROVED yang mengikat alokasi unit</small>
+            </article>
+            <article className="panel dashboard-metric">
+              <span className="muted">Available Unit Budget</span>
+              <strong>{formatCurrency(activeOverview?.available_amount ?? "0.00")}</strong>
+              <small>Alokasi dikurangi committed plan</small>
+            </article>
+            <article className="panel dashboard-metric">
+              <span className="muted">Draft Pipeline</span>
+              <strong>{formatCurrency(activeOverview?.draft_pipeline_amount ?? "0.00")}</strong>
+              <small>DRAFT + PENDING_APPROVAL, belum committed</small>
+            </article>
+            <article className="panel dashboard-metric">
               <span className="muted">Unit Teralokasi</span>
               <strong>{activeOverview?.allocations.length ?? 0}</strong>
               <small>Unit dengan alokasi pada {selectedFiscalYear.code}</small>
@@ -124,14 +139,16 @@ export function DashboardPage() {
                 <li>Status tahun: {selectedFiscalYear.status}</li>
                 <li>Status Annual Budget: {activeOverview?.annual_budget_status ?? "Belum ada"}</li>
                 <li>Alokasi unit tercatat: {activeOverview?.allocations.length ?? 0}</li>
+                <li>Committed: {formatCurrency(activeOverview?.committed_amount ?? "0.00")}</li>
+                <li>Available: {formatCurrency(activeOverview?.available_amount ?? "0.00")}</li>
               </ul>
             </article>
             <article className="panel">
               <span className="muted">Tahap Berikutnya</span>
               <h2>Rencana Anggaran Unit</h2>
               <p>
-                Setelah fondasi pagu dan alokasi unit stabil, Phase 3 akan menggunakan alokasi ini
-                sebagai batas maksimum rencana anggaran setiap unit.
+                Rencana APPROVED sekarang menjadi commitment resmi terhadap alokasi unit. Draft dan
+                pengajuan yang belum disetujui tetap dipantau sebagai pipeline terpisah.
               </p>
             </article>
           </section>

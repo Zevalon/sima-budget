@@ -27,6 +27,9 @@ export type BudgetPlan = {
   organization_unit_code: string;
   organization_unit_name: string;
   allocation_amount: string;
+  allocation_committed_amount: string;
+  allocation_draft_pipeline_amount: string;
+  allocation_available_amount: string;
   plan_number: string;
   status: BudgetPlanStatus;
   current_version_no: number;
@@ -72,6 +75,9 @@ export type BudgetPlanAllocationOption = {
   organization_unit_code: string;
   organization_unit_name: string;
   allocation_amount: string;
+  committed_amount: string;
+  draft_pipeline_amount: string;
+  available_amount: string;
 };
 
 export type BudgetPlanLookupOption = {

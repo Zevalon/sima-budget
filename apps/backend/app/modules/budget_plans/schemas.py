@@ -82,6 +82,9 @@ class BudgetPlanResponse(BaseModel):
     organization_unit_code: str
     organization_unit_name: str
     allocation_amount: Decimal
+    allocation_committed_amount: Decimal
+    allocation_draft_pipeline_amount: Decimal
+    allocation_available_amount: Decimal
     plan_number: str
     status: BudgetPlanStatus
     current_version_no: int
@@ -127,6 +130,9 @@ class BudgetPlanAllocationOption(BaseModel):
     organization_unit_code: str
     organization_unit_name: str
     allocation_amount: Decimal
+    committed_amount: Decimal
+    draft_pipeline_amount: Decimal
+    available_amount: Decimal
 
 
 class BudgetPlanLookupOption(BaseModel):

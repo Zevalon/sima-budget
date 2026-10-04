@@ -165,13 +165,20 @@ async def verify() -> None:
             await session.scalars(
                 select(BudgetPlan).where(
                     BudgetPlan.organization_id == organization.id,
-                    BudgetPlan.plan_number.in_(["DEV-FY2026-IT-001", "DEV-FY2026-FTI-001"]),
+                    BudgetPlan.plan_number.in_(
+                        [
+                            "DEV-FY2026-IT-001",
+                            "DEV-FY2026-IT-APPROVED-001",
+                            "DEV-FY2026-FTI-001",
+                        ]
+                    ),
                 )
             )
         ).all()
-        assert len(seeded_plans) == 2
+        assert len(seeded_plans) == 3
         statuses = {plan.plan_number: plan.status for plan in seeded_plans}
         assert statuses["DEV-FY2026-IT-001"] == "PENDING_APPROVAL"
+        assert statuses["DEV-FY2026-IT-APPROVED-001"] == "APPROVED"
         assert statuses["DEV-FY2026-FTI-001"] == "REJECTED"
         for plan in seeded_plans:
             version = await session.scalar(
@@ -199,10 +206,37 @@ async def verify() -> None:
             if plan.plan_number == "DEV-FY2026-IT-001":
                 assert approval.status == "PENDING"
                 assert approval.decided_by is None
+            elif plan.plan_number == "DEV-FY2026-IT-APPROVED-001":
+                assert approval.status == "APPROVED"
+                assert approval.decided_by is not None
+                assert plan.approved_by is not None
+                assert plan.approved_at is not None
             else:
                 assert approval.status == "REJECTED"
                 assert approval.decided_by is not None
                 assert plan.rejection_reason is not None
+
+        it_allocation = await session.scalar(
+            select(UnitAllocation)
+            .join(OrganizationUnit, OrganizationUnit.id == UnitAllocation.organization_unit_id)
+            .where(
+                UnitAllocation.fiscal_year_id == fy2026.id,
+                OrganizationUnit.code == "IT",
+            )
+        )
+        approved_it_plan = next(
+            plan for plan in seeded_plans if plan.plan_number == "DEV-FY2026-IT-APPROVED-001"
+        )
+        approved_it_version = await session.scalar(
+            select(BudgetPlanVersion).where(
+                BudgetPlanVersion.budget_plan_id == approved_it_plan.id,
+                BudgetPlanVersion.version_no == approved_it_plan.current_version_no,
+            )
+        )
+        assert it_allocation is not None
+        assert approved_it_version is not None
+        assert approved_it_version.total_amount == Decimal("30000000000.00")
+        assert it_allocation.amount - approved_it_version.total_amount == Decimal("90000000000.00")
 
         revoked_seed_session = await session.scalar(
             select(UserSession).where(UserSession.user_id == users_by_username["viewer"].id)
