@@ -17,6 +17,7 @@ from app.modules.budget_plans.schemas import (
     BudgetPlanRejectRequest,
     BudgetPlanResponse,
     BudgetPlanRevisionRequest,
+    BudgetPlanSubmitRequest,
     BudgetPlanUpdateRequest,
 )
 from app.modules.budget_plans.service import (
@@ -136,11 +137,17 @@ async def update_budget_plan_endpoint(
 @router.post("/budget-plans/{plan_id}/submit", response_model=BudgetPlanResponse)
 async def submit_budget_plan_endpoint(
     plan_id: UUID,
+    payload: BudgetPlanSubmitRequest,
     session: Annotated[AsyncSession, Depends(get_db_session)],
     context: Annotated[AuthContext, Depends(require_csrf)],
     _: Annotated[AuthContext, Depends(RequirePermission("budget_plans.submit"))],
 ) -> BudgetPlanResponse:
-    return await submit_budget_plan(session, plan_id=plan_id, actor_user_id=context.user.id)
+    return await submit_budget_plan(
+        session,
+        plan_id=plan_id,
+        payload=payload,
+        actor_user_id=context.user.id,
+    )
 
 
 @router.post("/budget-plans/{plan_id}/approve", response_model=BudgetPlanResponse)

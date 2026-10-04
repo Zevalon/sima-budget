@@ -1,4 +1,4 @@
-# PROJECT CONTEXT — SIMA through Phase 3B
+# PROJECT CONTEXT — SIMA through Phase 3D
 
 SIMA is an annual budget planning and monitoring application built with React + TypeScript,
 FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
@@ -7,9 +7,9 @@ FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 
 Phase 0, Phase 1, and Phase 2 are complete. CP-07 is the Phase 2 checkpoint.
 
-## Phase 3A
+## Phase 3A — Budget Plan Core
 
-Budget Plan core is implemented:
+Implemented:
 
 ```text
 Unit Allocation
@@ -18,11 +18,11 @@ Unit Allocation
         -> Budget Plan Items
 ```
 
-Draft plan items use Decimal financial arithmetic and are scoped to organizational units.
+Plan items use Decimal arithmetic and unit-scoped access.
 
-## Phase 3B
+## Phase 3B — Submission & Approval
 
-Budget Plan workflow becomes:
+Workflow:
 
 ```text
 DRAFT
@@ -32,28 +32,43 @@ DRAFT
             -> revise -> DRAFT (new version)
 ```
 
-Every submission stores the exact plan version reviewed. Rejected revisions create a new
-`BudgetPlanVersion`; approved versions are not silently overwritten.
+Each approval record references the exact submitted `BudgetPlanVersion`.
 
-Unit PIC owns create/update/submit/revise within scope. Unit Approver owns approve/reject
-within scope. Self-approval follows application settings and is disabled by default.
+## Phase 3C — Commitment Controls
 
-## Important Phase 3B boundary
-
-Approval is implemented, but aggregate financial commitment across multiple approved plans
-is intentionally deferred to Phase 3C.
-
-Phase 3C must enforce:
+Financial definitions:
 
 ```text
-Committed approved plans <= Unit Allocation
+Committed = APPROVED current plan versions
+Draft Pipeline = DRAFT + PENDING_APPROVAL current plan versions
 Available = Unit Allocation - Committed
 ```
 
-The aggregate check must be concurrency-safe using the PostgreSQL locking principles
-established in Phase 2C.
+Approval locks Unit Allocation before validating aggregate commitment, preventing concurrent
+overspending.
+
+## Phase 3D — Hardening
+
+Workflow actions are protected from stale browser state.
+
+Submit requires the expected Budget Plan row version. Approval decisions require:
+
+```text
+expected row_version
+expected submission_no
+expected version_no
+```
+
+A stale approver who reviewed an earlier submission cannot approve a newer resubmission without
+reloading and reviewing the new version.
+
+The Budget Plan page also shows scoped Allocation, Committed, Draft Pipeline, and Available totals.
 
 ## Development seed
 
-The cumulative development seed is extended with pending and rejected Budget Plan scenarios.
-Future phases continue extending the same seed baseline.
+The cumulative development seed remains the standard reproducible local baseline. Phase 3D does
+not add persistent tables, so no new seed entity is required.
+
+## Next milestone
+
+After Phase 3D gate, smoke test, CI, and merge: create CP-08 — Phase 3 Budget Plan Complete.

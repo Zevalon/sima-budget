@@ -53,7 +53,12 @@ export function BudgetPlanApprovalPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await approveBudgetPlan(plan.id, note.trim() || null);
+      await approveBudgetPlan(plan.id, {
+        expected_row_version: plan.row_version,
+        expected_submission_no: item.approval.submission_no,
+        expected_version_no: item.approval.version_no,
+        decision_note: note.trim() || null,
+      });
       setSuccessMessage(`${plan.plan_number} berhasil disetujui.`);
       await reload();
     } catch (error: unknown) {
@@ -74,7 +79,12 @@ export function BudgetPlanApprovalPage() {
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
-      await rejectBudgetPlan(plan.id, reason.trim());
+      await rejectBudgetPlan(plan.id, {
+        expected_row_version: plan.row_version,
+        expected_submission_no: item.approval.submission_no,
+        expected_version_no: item.approval.version_no,
+        reason: reason.trim(),
+      });
       setSuccessMessage(`${plan.plan_number} berhasil ditolak.`);
       await reload();
     } catch (error: unknown) {
@@ -140,7 +150,9 @@ export function BudgetPlanApprovalPage() {
                     <td>
                       {plan.organization_unit_code} · {plan.organization_unit_name}
                     </td>
-                    <td>{item.approval.version_no}</td>
+                    <td>
+                      Submission {item.approval.submission_no} · Versi {item.approval.version_no}
+                    </td>
                     <td>{plan.title}</td>
                     <td>{formatCurrency(plan.total_amount)}</td>
                     <td>{new Date(item.approval.requested_at).toLocaleString("id-ID")}</td>

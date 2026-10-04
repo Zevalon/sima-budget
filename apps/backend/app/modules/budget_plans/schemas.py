@@ -49,11 +49,21 @@ class BudgetPlanRevisionRequest(BudgetPlanUpdateRequest):
     pass
 
 
+class BudgetPlanSubmitRequest(BaseModel):
+    expected_row_version: int = Field(ge=1)
+
+
 class BudgetPlanApproveRequest(BaseModel):
+    expected_row_version: int = Field(ge=1)
+    expected_submission_no: int = Field(ge=1)
+    expected_version_no: int = Field(ge=1)
     decision_note: str | None = Field(default=None, max_length=2000)
 
 
 class BudgetPlanRejectRequest(BaseModel):
+    expected_row_version: int = Field(ge=1)
+    expected_submission_no: int = Field(ge=1)
+    expected_version_no: int = Field(ge=1)
     reason: str = Field(min_length=3, max_length=2000)
 
 
@@ -145,6 +155,10 @@ class BudgetPlanContextResponse(BaseModel):
     fiscal_year_id: UUID
     fiscal_year_code: str
     fiscal_year_status: FiscalYearStatus
+    scope_allocation_amount: Decimal
+    scope_committed_amount: Decimal
+    scope_draft_pipeline_amount: Decimal
+    scope_available_amount: Decimal
     allocations: list[BudgetPlanAllocationOption]
     budget_categories: list[BudgetPlanLookupOption]
     units_of_measure: list[BudgetPlanLookupOption]

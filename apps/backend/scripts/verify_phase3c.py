@@ -247,7 +247,7 @@ async def create_submitted_plan(
     category_id: str,
     uom_id: str,
     title: str,
-) -> str:
+) -> tuple[str, int]:
     created = await client.post(
         "/api/v1/budget-plans",
         headers=headers,
@@ -266,13 +266,16 @@ async def create_submitted_plan(
         },
     )
     assert created.status_code == 201, created.text
-    plan_id = created.json()["id"]
+    created_data = created.json()
+    plan_id = created_data["id"]
     submitted = await client.post(
         f"/api/v1/budget-plans/{plan_id}/submit",
         headers=headers,
+        json={"expected_row_version": created_data["row_version"]},
     )
     assert submitted.status_code == 200, submitted.text
-    return plan_id
+    submitted_data = submitted.json()
+    return plan_id, int(submitted_data["row_version"])
 
 
 async def verify() -> None:
@@ -285,7 +288,7 @@ async def verify() -> None:
             follow_redirects=True,
         ) as pic_client:
             pic_headers = await login(pic_client, PIC_USERNAME)
-            first_plan_id = await create_submitted_plan(
+            first_plan_id, first_row_version = await create_submitted_plan(
                 pic_client,
                 headers=pic_headers,
                 allocation_id=allocation_id,
@@ -293,7 +296,7 @@ async def verify() -> None:
                 uom_id=uom_id,
                 title="Concurrent plan A",
             )
-            second_plan_id = await create_submitted_plan(
+            second_plan_id, second_row_version = await create_submitted_plan(
                 pic_client,
                 headers=pic_headers,
                 allocation_id=allocation_id,
@@ -320,12 +323,22 @@ async def verify() -> None:
                 approver_a.post(
                     f"/api/v1/budget-plans/{first_plan_id}/approve",
                     headers=headers_a,
-                    json={"decision_note": "Concurrent approval A"},
+                    json={
+                        "expected_row_version": first_row_version,
+                        "expected_submission_no": 1,
+                        "expected_version_no": 1,
+                        "decision_note": "Concurrent approval A",
+                    },
                 ),
                 approver_b.post(
                     f"/api/v1/budget-plans/{second_plan_id}/approve",
                     headers=headers_b,
-                    json={"decision_note": "Concurrent approval B"},
+                    json={
+                        "expected_row_version": second_row_version,
+                        "expected_submission_no": 1,
+                        "expected_version_no": 1,
+                        "decision_note": "Concurrent approval B",
+                    },
                 ),
             )
             assert sorted([first_result.status_code, second_result.status_code]) == [200, 409]

@@ -126,6 +126,9 @@ phase3b-check:
 phase3c-check:
 	./scripts/check-phase3c.sh
 
+phase3d-check:
+	./scripts/check-phase3d.sh
+
 dev-seed:
 	$(MAKE) dev-db-up
 	cd apps/backend && uv run alembic upgrade head

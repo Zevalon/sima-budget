@@ -69,6 +69,7 @@ describe("BudgetPlanApprovalPage", () => {
 
     await waitFor(() => expect(screen.getByText("DEV-FY2026-IT-001")).toBeInTheDocument());
     expect(screen.getByText(/UPT Teknologi Informasi/)).toBeInTheDocument();
+    expect(screen.getByText("Submission 1 · Versi 1")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Setujui" })).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Tolak" })).toBeInTheDocument();
   });
