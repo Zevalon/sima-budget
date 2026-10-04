@@ -1,6 +1,10 @@
 import { NavLink, Outlet } from "react-router-dom";
 
 import { useAuth } from "../features/auth/auth-context";
+import {
+  FiscalYearProvider,
+  useFiscalYear,
+} from "../features/budget-foundation/fiscal-year-context";
 
 type NavigationItem = {
   label: string;
@@ -16,7 +20,11 @@ const navigation: NavigationItem[] = [
   { label: "Realisasi", to: "#", disabled: true },
   { label: "Approval", to: "#", disabled: true },
   { label: "Laporan", to: "#", disabled: true },
-  { label: "Master Data", to: "#", disabled: true },
+  {
+    label: "Master Data",
+    to: "/app/master-data",
+    permissionAnyOf: ["fiscal_years.view", "budget_categories.view", "units_of_measure.view"],
+  },
   {
     label: "Administration",
     to: "/app/administration",
@@ -40,8 +48,9 @@ function initials(name: string): string {
     .join("");
 }
 
-export function AppShell() {
+function AppShellContent() {
   const auth = useAuth();
+  const fiscalYear = useFiscalYear();
   const user = auth.user;
   const permissions = new Set(user?.permissions ?? []);
 
@@ -91,8 +100,20 @@ export function AppShell() {
           <div className="topbar-actions">
             <label>
               <span className="muted">Tahun Anggaran</span>
-              <select defaultValue="2027" aria-label="Tahun Anggaran" disabled>
-                <option value="2027">2027</option>
+              <select
+                value={fiscalYear.selectedFiscalYearId}
+                aria-label="Tahun Anggaran"
+                disabled={fiscalYear.loading || fiscalYear.fiscalYears.length === 0}
+                onChange={(event) => fiscalYear.setSelectedFiscalYearId(event.target.value)}
+              >
+                {fiscalYear.fiscalYears.length === 0 ? (
+                  <option value="">Belum tersedia</option>
+                ) : null}
+                {fiscalYear.fiscalYears.map((item) => (
+                  <option value={item.id} key={item.id}>
+                    {item.code} · {item.status}
+                  </option>
+                ))}
               </select>
             </label>
             <div className="profile-summary">
@@ -114,5 +135,13 @@ export function AppShell() {
         </main>
       </div>
     </div>
+  );
+}
+
+export function AppShell() {
+  return (
+    <FiscalYearProvider>
+      <AppShellContent />
+    </FiscalYearProvider>
   );
 }

@@ -1,5 +1,5 @@
 from app.core.database import Base
-from app.modules.roles.bootstrap_data import DEFAULT_ROLE_TEMPLATES, FOUNDATION_PERMISSIONS
+from app.modules.roles.bootstrap_data import ALL_BOOTSTRAP_PERMISSIONS, DEFAULT_ROLE_TEMPLATES
 from app.modules.roles.constants import ScopeType
 from app.shared.db.model_registry import MODELS
 
@@ -34,7 +34,7 @@ def test_scope_types_are_stable() -> None:
 
 
 def test_bootstrap_codes_are_unique() -> None:
-    permission_codes = [code for code, _, _ in FOUNDATION_PERMISSIONS]
+    permission_codes = [code for code, _, _ in ALL_BOOTSTRAP_PERMISSIONS]
     role_codes = [code for code, _, _, _ in DEFAULT_ROLE_TEMPLATES]
 
     assert len(permission_codes) == len(set(permission_codes))

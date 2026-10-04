@@ -1,5 +1,6 @@
 from app.modules.audit.models import AuditLog
 from app.modules.auth.models import UserSession
+from app.modules.budget_foundation.models import BudgetCategory, FiscalYear, UnitOfMeasure
 from app.modules.organizations.models import (
     Organization,
     OrganizationUnit,
@@ -23,4 +24,7 @@ MODELS = (
     UserRoleAssignment,
     UserSession,
     AuditLog,
+    FiscalYear,
+    BudgetCategory,
+    UnitOfMeasure,
 )
