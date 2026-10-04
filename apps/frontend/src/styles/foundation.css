@@ -48,3 +48,21 @@
     grid-column: auto;
   }
 }
+
+.access-denied-link {
+  display: inline-block;
+  margin-top: 16px;
+  text-decoration: none;
+}
+
+.audit-filter-actions,
+.audit-pagination {
+  display: flex;
+  gap: 8px;
+  align-items: center;
+}
+
+.audit-pagination {
+  justify-content: flex-end;
+  margin-top: 16px;
+}

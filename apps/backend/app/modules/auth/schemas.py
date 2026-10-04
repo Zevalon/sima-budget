@@ -31,6 +31,9 @@ class CurrentUserResponse(BaseModel):
     full_name: str
     organization_id: UUID
     organization_name: str
+    application_name: str
+    application_short_name: str
+    organization_display_name: str
     roles: list[RoleGrantResponse]
     permissions: list[str]
     unit_memberships: list[UnitMembershipResponse]

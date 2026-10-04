@@ -51,6 +51,14 @@ export function deactivateUser(userId: string): Promise<void> {
   return apiRequest<void>(`/admin/users/${userId}/deactivate`, { method: "POST" }, { csrf: true });
 }
 
+export function revokeUserSessions(userId: string): Promise<void> {
+  return apiRequest<void>(
+    `/admin/users/${userId}/revoke-sessions`,
+    { method: "POST" },
+    { csrf: true },
+  );
+}
+
 export function createRole(payload: {
   code: string;
   name: string;

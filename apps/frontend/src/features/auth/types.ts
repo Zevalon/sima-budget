@@ -20,6 +20,9 @@ export type AuthUser = {
   full_name: string;
   organization_id: string;
   organization_name: string;
+  application_name: string;
+  application_short_name: string;
+  organization_display_name: string;
   roles: RoleGrant[];
   permissions: string[];
   unit_memberships: UnitMembership[];

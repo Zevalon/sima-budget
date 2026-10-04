@@ -9,6 +9,7 @@ import {
   listOrganizationUnits,
   listRoles,
   listUsers,
+  revokeUserSessions,
 } from "../api/admin";
 import type { AdminOrganizationUnit, AdminRole, AdminUser } from "../types";
 
@@ -17,6 +18,7 @@ export function UsersPage() {
   const permissions = new Set(auth.user?.permissions ?? []);
   const canCreate = permissions.has("users.create");
   const canDeactivate = permissions.has("users.deactivate");
+  const canRevokeSessions = permissions.has("sessions.revoke");
 
   const [users, setUsers] = useState<AdminUser[]>([]);
   const [roles, setRoles] = useState<AdminRole[]>([]);
@@ -106,6 +108,21 @@ export function UsersPage() {
       await reload();
     } catch (error: unknown) {
       setErrorMessage(error instanceof ApiError ? error.message : "Gagal membuat user.");
+    }
+  }
+
+  async function handleRevokeSessions(userId: string) {
+    if (!window.confirm("Cabut semua session aktif untuk pengguna ini?")) {
+      return;
+    }
+
+    setErrorMessage(null);
+    try {
+      await revokeUserSessions(userId);
+    } catch (error: unknown) {
+      setErrorMessage(
+        error instanceof ApiError ? error.message : "Gagal mencabut session pengguna.",
+      );
     }
   }
 
@@ -209,6 +226,13 @@ export function UsersPage() {
               </tr>
             </thead>
             <tbody>
+              {users.length === 0 && !loading ? (
+                <tr>
+                  <td colSpan={5} className="empty-table-cell">
+                    Belum ada pengguna untuk ditampilkan.
+                  </td>
+                </tr>
+              ) : null}
               {users.map((user) => (
                 <tr key={user.id}>
                   <td>{user.full_name}</td>
@@ -216,17 +240,30 @@ export function UsersPage() {
                   <td>{user.email ?? "—"}</td>
                   <td>{user.is_active ? "Aktif" : "Nonaktif"}</td>
                   <td className="table-actions">
-                    {canDeactivate && user.is_active ? (
-                      <button
-                        className="danger-button"
-                        type="button"
-                        onClick={() => {
-                          void handleDeactivate(user.id);
-                        }}
-                      >
-                        Nonaktifkan
-                      </button>
-                    ) : null}
+                    <div className="table-action-group">
+                      {canRevokeSessions && user.id !== auth.user?.id && user.is_active ? (
+                        <button
+                          className="secondary-button compact-button"
+                          type="button"
+                          onClick={() => {
+                            void handleRevokeSessions(user.id);
+                          }}
+                        >
+                          Cabut Session
+                        </button>
+                      ) : null}
+                      {canDeactivate && user.is_active ? (
+                        <button
+                          className="danger-button"
+                          type="button"
+                          onClick={() => {
+                            void handleDeactivate(user.id);
+                          }}
+                        >
+                          Nonaktifkan
+                        </button>
+                      ) : null}
+                    </div>
                   </td>
                 </tr>
               ))}

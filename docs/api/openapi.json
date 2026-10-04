@@ -395,6 +395,58 @@
         }
       }
     },
+    "/api/v1/admin/users/{user_id}/revoke-sessions": {
+      "post": {
+        "tags": [
+          "administration"
+        ],
+        "summary": "Revoke User Sessions Endpoint",
+        "operationId": "revoke_user_sessions_endpoint_api_v1_admin_users__user_id__revoke_sessions_post",
+        "parameters": [
+          {
+            "name": "user_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "User Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Successful Response"
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/admin/users/{user_id}/reset-password": {
       "post": {
         "tags": [
@@ -1995,6 +2047,18 @@
             "type": "string",
             "title": "Organization Name"
           },
+          "application_name": {
+            "type": "string",
+            "title": "Application Name"
+          },
+          "application_short_name": {
+            "type": "string",
+            "title": "Application Short Name"
+          },
+          "organization_display_name": {
+            "type": "string",
+            "title": "Organization Display Name"
+          },
           "roles": {
             "items": {
               "$ref": "#/components/schemas/RoleGrantResponse"
@@ -2034,6 +2098,9 @@
           "full_name",
           "organization_id",
           "organization_name",
+          "application_name",
+          "application_short_name",
+          "organization_display_name",
           "roles",
           "permissions",
           "unit_memberships",
@@ -2124,6 +2191,18 @@
             "type": "string",
             "title": "Organization Name"
           },
+          "application_name": {
+            "type": "string",
+            "title": "Application Name"
+          },
+          "application_short_name": {
+            "type": "string",
+            "title": "Application Short Name"
+          },
+          "organization_display_name": {
+            "type": "string",
+            "title": "Organization Display Name"
+          },
           "roles": {
             "items": {
               "$ref": "#/components/schemas/RoleGrantResponse"
@@ -2163,6 +2242,9 @@
           "full_name",
           "organization_id",
           "organization_name",
+          "application_name",
+          "application_short_name",
+          "organization_display_name",
           "roles",
           "permissions",
           "unit_memberships",
