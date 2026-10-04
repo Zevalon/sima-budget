@@ -1,3 +1,4 @@
+from app.modules.annual_budgets.models import AnnualBudget, AnnualBudgetApproval
 from app.modules.audit.models import AuditLog
 from app.modules.auth.models import UserSession
 from app.modules.budget_foundation.models import BudgetCategory, FiscalYear, UnitOfMeasure
@@ -27,4 +28,6 @@ MODELS = (
     FiscalYear,
     BudgetCategory,
     UnitOfMeasure,
+    AnnualBudget,
+    AnnualBudgetApproval,
 )

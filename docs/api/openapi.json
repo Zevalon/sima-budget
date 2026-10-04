@@ -1905,6 +1905,333 @@
         }
       }
     },
+    "/api/v1/annual-budgets": {
+      "get": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Annual Budgets Endpoint",
+        "operationId": "annual_budgets_endpoint_api_v1_annual_budgets_get",
+        "parameters": [
+          {
+            "name": "fiscal_year_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Fiscal Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnualBudgetResponse"
+                  },
+                  "title": "Response Annual Budgets Endpoint Api V1 Annual Budgets Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Create Annual Budget Endpoint",
+        "operationId": "create_annual_budget_endpoint_api_v1_annual_budgets_post",
+        "parameters": [
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnualBudgetCreateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnualBudgetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annual-budgets/{annual_budget_id}": {
+      "get": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Annual Budget Detail Endpoint",
+        "operationId": "annual_budget_detail_endpoint_api_v1_annual_budgets__annual_budget_id__get",
+        "parameters": [
+          {
+            "name": "annual_budget_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Annual Budget Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnualBudgetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      },
+      "patch": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Update Annual Budget Endpoint",
+        "operationId": "update_annual_budget_endpoint_api_v1_annual_budgets__annual_budget_id__patch",
+        "parameters": [
+          {
+            "name": "annual_budget_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Annual Budget Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "requestBody": {
+          "required": true,
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AnnualBudgetUpdateRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnualBudgetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annual-budgets/{annual_budget_id}/submit": {
+      "post": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Submit Annual Budget Endpoint",
+        "operationId": "submit_annual_budget_endpoint_api_v1_annual_budgets__annual_budget_id__submit_post",
+        "parameters": [
+          {
+            "name": "annual_budget_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Annual Budget Id"
+            }
+          },
+          {
+            "name": "X-CSRF-Token",
+            "in": "header",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "X-Csrf-Token"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AnnualBudgetResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/api/v1/annual-budgets/{annual_budget_id}/approvals": {
+      "get": {
+        "tags": [
+          "annual-budgets"
+        ],
+        "summary": "Annual Budget Approvals Endpoint",
+        "operationId": "annual_budget_approvals_endpoint_api_v1_annual_budgets__annual_budget_id__approvals_get",
+        "parameters": [
+          {
+            "name": "annual_budget_id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Annual Budget Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AnnualBudgetApprovalResponse"
+                  },
+                  "title": "Response Annual Budget Approvals Endpoint Api V1 Annual Budgets  Annual Budget Id  Approvals Get"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "tags": [
@@ -2338,6 +2665,318 @@
           "last_login_at"
         ],
         "title": "AdminUserSummary"
+      },
+      "AnnualBudgetApprovalResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "annual_budget_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Annual Budget Id"
+          },
+          "submission_no": {
+            "type": "integer",
+            "title": "Submission No"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AnnualBudgetApprovalStatus"
+          },
+          "requested_by": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Requested By"
+          },
+          "requested_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Requested At"
+          },
+          "decided_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided By"
+          },
+          "decided_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decided At"
+          },
+          "decision_note": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Decision Note"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "annual_budget_id",
+          "submission_no",
+          "status",
+          "requested_by",
+          "requested_at",
+          "decided_by",
+          "decided_at",
+          "decision_note",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AnnualBudgetApprovalResponse"
+      },
+      "AnnualBudgetApprovalStatus": {
+        "type": "string",
+        "enum": [
+          "PENDING",
+          "APPROVED",
+          "REJECTED"
+        ],
+        "title": "AnnualBudgetApprovalStatus"
+      },
+      "AnnualBudgetCreateRequest": {
+        "properties": {
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,21}0*$)\\d{0,18}\\.\\d{0,2}0*$)"
+              }
+            ],
+            "title": "Amount"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fiscal_year_id",
+          "amount"
+        ],
+        "title": "AnnualBudgetCreateRequest"
+      },
+      "AnnualBudgetResponse": {
+        "properties": {
+          "id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Id"
+          },
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "fiscal_year_code": {
+            "type": "string",
+            "title": "Fiscal Year Code"
+          },
+          "amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Amount"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          },
+          "status": {
+            "$ref": "#/components/schemas/AnnualBudgetStatus"
+          },
+          "version": {
+            "type": "integer",
+            "title": "Version"
+          },
+          "submitted_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted By"
+          },
+          "submitted_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Submitted At"
+          },
+          "approved_by": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved By"
+          },
+          "approved_at": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "date-time"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Approved At"
+          },
+          "rejection_reason": {
+            "anyOf": [
+              {
+                "type": "string"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Rejection Reason"
+          },
+          "created_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Created At"
+          },
+          "updated_at": {
+            "type": "string",
+            "format": "date-time",
+            "title": "Updated At"
+          }
+        },
+        "type": "object",
+        "required": [
+          "id",
+          "fiscal_year_id",
+          "fiscal_year_code",
+          "amount",
+          "notes",
+          "status",
+          "version",
+          "submitted_by",
+          "submitted_at",
+          "approved_by",
+          "approved_at",
+          "rejection_reason",
+          "created_at",
+          "updated_at"
+        ],
+        "title": "AnnualBudgetResponse"
+      },
+      "AnnualBudgetStatus": {
+        "type": "string",
+        "enum": [
+          "DRAFT",
+          "PENDING_APPROVAL",
+          "APPROVED",
+          "REJECTED"
+        ],
+        "title": "AnnualBudgetStatus"
+      },
+      "AnnualBudgetUpdateRequest": {
+        "properties": {
+          "amount": {
+            "anyOf": [
+              {
+                "type": "number",
+                "exclusiveMinimum": 0.0
+              },
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*(?:\\d{0,18}|(?=[\\d.]{1,21}0*$)\\d{0,18}\\.\\d{0,2}0*$)"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Amount"
+          },
+          "notes": {
+            "anyOf": [
+              {
+                "type": "string",
+                "maxLength": 2000
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Notes"
+          }
+        },
+        "type": "object",
+        "title": "AnnualBudgetUpdateRequest"
       },
       "ApplicationSettingResponse": {
         "properties": {

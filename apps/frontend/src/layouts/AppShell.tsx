@@ -15,7 +15,11 @@ type NavigationItem = {
 
 const navigation: NavigationItem[] = [
   { label: "Dashboard", to: "/app/dashboard" },
-  { label: "Anggaran", to: "#", disabled: true },
+  {
+    label: "Anggaran",
+    to: "/app/annual-budgets",
+    permissionAnyOf: ["annual_budgets.view"],
+  },
   { label: "Rencana Anggaran", to: "#", disabled: true },
   { label: "Realisasi", to: "#", disabled: true },
   { label: "Approval", to: "#", disabled: true },

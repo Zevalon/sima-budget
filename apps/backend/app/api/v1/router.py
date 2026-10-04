@@ -1,6 +1,7 @@
 from fastapi import APIRouter
 
 from app.modules.administration.api import router as administration_router
+from app.modules.annual_budgets.api import router as annual_budgets_router
 from app.modules.audit.api import router as audit_router
 from app.modules.auth.api import router as auth_router
 from app.modules.budget_foundation.api import router as budget_foundation_router
@@ -12,6 +13,7 @@ router.include_router(administration_router)
 router.include_router(settings_router)
 router.include_router(audit_router)
 router.include_router(budget_foundation_router)
+router.include_router(annual_budgets_router)
 
 
 @router.get("/meta", tags=["meta"])
@@ -19,5 +21,5 @@ async def meta() -> dict[str, str]:
     return {
         "api_version": "v1",
         "application": "SIMA",
-        "implementation_phase": "2A",
+        "implementation_phase": "2B1",
     }
