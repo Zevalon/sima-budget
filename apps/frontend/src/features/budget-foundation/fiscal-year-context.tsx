@@ -102,6 +102,8 @@ export function FiscalYearProvider({ children }: { children: ReactNode }) {
   );
 }
 
+// The provider and its hook intentionally share this module.
+// eslint-disable-next-line react-refresh/only-export-components
 export function useFiscalYear() {
   const context = useContext(FiscalYearContext);
   if (!context) {

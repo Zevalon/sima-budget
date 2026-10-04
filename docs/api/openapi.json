@@ -4806,6 +4806,11 @@
       },
       "UnitAllocationUpdateRequest": {
         "properties": {
+          "expected_version": {
+            "type": "integer",
+            "minimum": 1.0,
+            "title": "Expected Version"
+          },
           "amount": {
             "anyOf": [
               {
@@ -4836,6 +4841,9 @@
           }
         },
         "type": "object",
+        "required": [
+          "expected_version"
+        ],
         "title": "UnitAllocationUpdateRequest"
       },
       "UnitMembershipResponse": {

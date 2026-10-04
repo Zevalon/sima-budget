@@ -2,29 +2,31 @@
 
 ## Completed
 
-- CP-01 through CP-05 design baselines
-- Implementation Phase 0 — Repository & Tooling
-- Phase 0 automated gate
-- Phase 0 browser smoke test
-- Git repository initialized and pushed by project owner
+- CP-01 through CP-06 baselines
+- Phase 0 — Repository & Tooling
+- Phase 1 — Foundation
+- Phase 2A — Fiscal Year & Budget Master Foundation
+- Phase 2B1 — Annual Budget Core & Submission
+- Phase 2B2 — Annual Budget Approval & Rejection
+- Phase 2C — Unit Allocation
+- Deterministic Development Seed Baseline
 
 ## Current
 
-Implementation Phase 1A — Identity & Database Foundation.
+Phase 2D — Budget Foundation Hardening & Completion.
 
-Scope:
-- organization identity;
-- application settings;
-- organization hierarchy;
-- users and memberships;
-- RBAC tables;
-- server-side session persistence;
-- audit log persistence;
-- Alembic migration;
-- idempotent foundation bootstrap.
+Current scope:
 
-## Next after Phase 1A validation
+- stale-write protection for Unit Allocation edits;
+- cross-module protection for organization units referenced by open allocations;
+- real selected-year budget summary on Dashboard;
+- Unit Allocation UX hardening;
+- regression-warning cleanup;
+- final Phase 2 regression gate.
 
-Phase 1B — Authentication, Session, CSRF, Login/Logout, Current User.
+## Next after Phase 2D validation
 
-Do not start Annual Budget features before Phase 1 Foundation is stable.
+1. create CP-07 — Phase 2 Budget Foundation Complete;
+2. start Phase 3 — Budget Plan / Rencana Anggaran.
+
+Phase 3 must consume Unit Allocation as the unit-level spending ceiling and preserve all approved Phase 2 invariants.

@@ -20,6 +20,8 @@ from app.modules.administration.schemas import (
 )
 from app.modules.audit.service import record_audit
 from app.modules.auth.models import UserSession
+from app.modules.budget_foundation.models import FiscalYear
+from app.modules.budget_foundation.schemas import FiscalYearStatus
 from app.modules.organizations.models import (
     Organization,
     OrganizationUnit,
@@ -27,6 +29,7 @@ from app.modules.organizations.models import (
     UserUnitMembership,
 )
 from app.modules.roles.models import Permission, Role, RolePermission, UserRoleAssignment
+from app.modules.unit_allocations.models import UnitAllocation
 from app.modules.users.models import User
 
 
@@ -43,6 +46,35 @@ async def get_default_organization(session: AsyncSession) -> Organization:
     if organization is None:
         raise RuntimeError("Default organization belum tersedia.")
     return organization
+
+
+async def _ensure_unit_has_no_open_allocations(
+    session: AsyncSession,
+    *,
+    organization_id: UUID,
+    unit_id: UUID,
+) -> None:
+    allocation_id = await session.scalar(
+        select(UnitAllocation.id)
+        .join(FiscalYear, FiscalYear.id == UnitAllocation.fiscal_year_id)
+        .where(
+            UnitAllocation.organization_id == organization_id,
+            UnitAllocation.organization_unit_id == unit_id,
+            FiscalYear.status.in_(
+                [
+                    FiscalYearStatus.DRAFT.value,
+                    FiscalYearStatus.PLANNING.value,
+                    FiscalYearStatus.ACTIVE.value,
+                ]
+            ),
+        )
+        .limit(1)
+    )
+    if allocation_id is not None:
+        raise conflict(
+            "Unit masih memiliki alokasi pada tahun anggaran terbuka dan tidak dapat "
+            "dinonaktifkan sebagai penerima anggaran."
+        )
 
 
 async def _system_admin_role(session: AsyncSession, organization_id: UUID) -> Role:
@@ -897,6 +929,12 @@ async def update_organization_unit(
 
     if payload.name is not None:
         unit.name = payload.name.strip()
+    if payload.can_receive_budget is False and unit.can_receive_budget:
+        await _ensure_unit_has_no_open_allocations(
+            session,
+            organization_id=organization.id,
+            unit_id=unit.id,
+        )
     if payload.can_receive_budget is not None:
         unit.can_receive_budget = payload.can_receive_budget
     if payload.can_create_budget_plan is not None:
@@ -939,6 +977,12 @@ async def deactivate_organization_unit(
         raise not_found("Unit organisasi tidak ditemukan.")
     if unit.code == "ROOT":
         raise conflict("Root organization unit tidak dapat dinonaktifkan.")
+
+    await _ensure_unit_has_no_open_allocations(
+        session,
+        organization_id=organization.id,
+        unit_id=unit.id,
+    )
 
     active_child = await session.scalar(
         select(OrganizationUnit.id).where(

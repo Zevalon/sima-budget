@@ -389,18 +389,32 @@ async def verify() -> None:
             over_update = await budget_client.patch(
                 f"/api/v1/unit-allocations/{successful_allocation_id}",
                 headers=budget_headers,
-                json={"amount": "700.00"},
+                json={"expected_version": 1, "amount": "700.00"},
             )
             assert over_update.status_code == 409, over_update.text
 
             updated = await budget_client.patch(
                 f"/api/v1/unit-allocations/{successful_allocation_id}",
                 headers=budget_headers,
-                json={"amount": "500.25", "notes": "Controlled adjustment"},
+                json={
+                    "expected_version": 1,
+                    "amount": "500.25",
+                    "notes": "Controlled adjustment",
+                },
             )
             assert updated.status_code == 200, updated.text
             assert Decimal(updated.json()["amount"]) == Decimal("500.25")
             assert updated.json()["version"] == 2
+
+            stale_update = await budget_client.patch(
+                f"/api/v1/unit-allocations/{successful_allocation_id}",
+                headers=budget_headers,
+                json={
+                    "expected_version": 1,
+                    "notes": "Stale browser state",
+                },
+            )
+            assert stale_update.status_code == 409, stale_update.text
 
             overview_after_update = await budget_client.get(
                 "/api/v1/unit-allocations/overview",

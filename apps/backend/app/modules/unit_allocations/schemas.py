@@ -30,6 +30,7 @@ class UnitAllocationCreateRequest(BaseModel):
 
 
 class UnitAllocationUpdateRequest(BaseModel):
+    expected_version: int = Field(ge=1)
     amount: Decimal | None = Field(default=None, gt=0, max_digits=20, decimal_places=2)
     notes: str | None = Field(default=None, max_length=2000)
 

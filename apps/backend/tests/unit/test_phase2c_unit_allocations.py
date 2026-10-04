@@ -29,6 +29,10 @@ def test_unit_allocation_rejects_zero_amount() -> None:
 
 
 def test_unit_allocation_update_can_change_notes_only() -> None:
-    payload = UnitAllocationUpdateRequest(notes="Penyesuaian alokasi")
+    payload = UnitAllocationUpdateRequest(
+        expected_version=1,
+        notes="Penyesuaian alokasi",
+    )
+    assert payload.expected_version == 1
     assert payload.amount is None
     assert payload.notes == "Penyesuaian alokasi"

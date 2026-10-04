@@ -306,7 +306,12 @@ async def update_unit_allocation(
     )
     if fiscal_year.status != FiscalYearStatus.PLANNING.value:
         raise conflict("Alokasi unit hanya dapat diubah saat tahun anggaran PLANNING.")
-    if not payload.model_fields_set:
+    if item.version != payload.expected_version:
+        raise conflict(
+            "Alokasi unit sudah berubah sejak halaman dimuat. Muat ulang data sebelum menyimpan."
+        )
+    changed_fields = payload.model_fields_set - {"expected_version"}
+    if not changed_fields:
         raise conflict("Tidak ada perubahan alokasi yang dikirim.")
 
     unit = await _eligible_unit(
@@ -320,7 +325,7 @@ async def update_unit_allocation(
         "version": item.version,
     }
 
-    if "amount" in payload.model_fields_set and payload.amount is not None:
+    if "amount" in changed_fields and payload.amount is not None:
         amount = normalize_amount(payload.amount)
         allocated_without_current = await _allocated_total(
             session,
@@ -332,7 +337,7 @@ async def update_unit_allocation(
                 "Total alokasi unit tidak boleh melebihi anggaran tahunan yang disetujui."
             )
         item.amount = amount
-    if "notes" in payload.model_fields_set:
+    if "notes" in changed_fields:
         item.notes = payload.notes.strip() if payload.notes else None
 
     item.version += 1

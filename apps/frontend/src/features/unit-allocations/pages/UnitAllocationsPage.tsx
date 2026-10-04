@@ -84,9 +84,8 @@ export function UnitAllocationsPage() {
     () => new Set(activeOverview?.allocations.map((item) => item.organization_unit_id) ?? []),
     [activeOverview],
   );
-  const eligibleUnits = units.filter(
-    (unit) => unit.is_active && unit.can_receive_budget && !allocatedUnitIds.has(unit.id),
-  );
+  const receivableUnits = units.filter((unit) => unit.is_active && unit.can_receive_budget);
+  const eligibleUnits = receivableUnits.filter((unit) => !allocatedUnitIds.has(unit.id));
   const canMutate =
     selectedFiscalYear?.status === "PLANNING" &&
     activeOverview?.annual_budget_status === "APPROVED";
@@ -113,13 +112,18 @@ export function UnitAllocationsPage() {
     }
   }
 
-  async function handleUpdate(event: FormEvent<HTMLFormElement>, allocationId: string) {
+  async function handleUpdate(
+    event: FormEvent<HTMLFormElement>,
+    allocationId: string,
+    expectedVersion: number,
+  ) {
     event.preventDefault();
     const data = new FormData(event.currentTarget);
     setErrorMessage(null);
     setSuccessMessage(null);
     try {
       await updateUnitAllocation(allocationId, {
+        expected_version: expectedVersion,
         amount: getFormString(data, "amount"),
         notes: getFormString(data, "notes") || null,
       });
@@ -217,6 +221,37 @@ export function UnitAllocationsPage() {
             </form>
           ) : null}
 
+          {activeOverview && canCreate && canMutate && eligibleUnits.length === 0 ? (
+            <section className="panel allocation-guidance">
+              {receivableUnits.length === 0 ? (
+                <>
+                  <h2>Belum Ada Unit Penerima Anggaran</h2>
+                  <p className="muted">
+                    Aktifkan opsi penerima anggaran pada Administration → Unit Organisasi agar unit
+                    dapat dipilih untuk alokasi.
+                  </p>
+                </>
+              ) : (
+                <>
+                  <h2>Semua Unit Sudah Memiliki Alokasi</h2>
+                  <p className="muted">
+                    Tidak ada unit penerima yang belum dialokasikan untuk tahun anggaran ini.
+                    Gunakan formulir pada masing-masing unit untuk melakukan penyesuaian.
+                  </p>
+                </>
+              )}
+            </section>
+          ) : null}
+
+          {activeOverview && selectedFiscalYear.status !== "PLANNING" ? (
+            <section className="panel allocation-guidance">
+              <h2>Alokasi Terkunci</h2>
+              <p className="muted">
+                Alokasi hanya dapat dibuat atau diubah saat Tahun Anggaran berstatus PLANNING.
+              </p>
+            </section>
+          ) : null}
+
           {activeOverview ? (
             <section className="panel">
               <div className="table-toolbar">
@@ -242,7 +277,7 @@ export function UnitAllocationsPage() {
                       {canUpdate && canMutate ? (
                         <form
                           className="allocation-edit-form"
-                          onSubmit={(event) => void handleUpdate(event, item.id)}
+                          onSubmit={(event) => void handleUpdate(event, item.id, item.version)}
                         >
                           <label className="form-field">
                             <span>Jumlah</span>

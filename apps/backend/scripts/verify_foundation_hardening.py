@@ -208,7 +208,6 @@ async def verify_isolated_last_admin_guard() -> None:
                 delete(UserRoleAssignment).where(UserRoleAssignment.user_id == user.id)
             )
             await session.delete(user)
-            await session.delete(role)
             await session.delete(organization)
             await session.commit()
 
