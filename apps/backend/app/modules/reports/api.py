@@ -31,10 +31,7 @@ def _validate_export_category(
 ) -> None:
     if category_id is None:
         return
-    if any(
-        item.budget_category_id == category_id
-        for item in summary.category_plan_summaries
-    ):
+    if any(item.budget_category_id == category_id for item in summary.category_plan_summaries):
         return
     raise HTTPException(
         status_code=status.HTTP_404_NOT_FOUND,
