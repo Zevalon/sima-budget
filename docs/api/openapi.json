@@ -3733,6 +3733,49 @@
         }
       }
     },
+    "/api/v1/reports/financial-summary": {
+      "get": {
+        "tags": [
+          "reports"
+        ],
+        "summary": "Financial Summary Endpoint",
+        "operationId": "financial_summary_endpoint_api_v1_reports_financial_summary_get",
+        "parameters": [
+          {
+            "name": "fiscal_year_id",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "title": "Fiscal Year Id"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Successful Response",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FinancialSummaryResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Validation Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/HTTPValidationError"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/api/v1/meta": {
       "get": {
         "tags": [
@@ -5952,6 +5995,165 @@
         ],
         "title": "CurrentUserResponse"
       },
+      "FinancialSummaryResponse": {
+        "properties": {
+          "fiscal_year_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Fiscal Year Id"
+          },
+          "fiscal_year_code": {
+            "type": "string",
+            "title": "Fiscal Year Code"
+          },
+          "fiscal_year_status": {
+            "$ref": "#/components/schemas/FiscalYearStatus"
+          },
+          "annual_budget_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Annual Budget Id"
+          },
+          "annual_budget_status": {
+            "anyOf": [
+              {
+                "$ref": "#/components/schemas/AnnualBudgetStatus"
+              },
+              {
+                "type": "null"
+              }
+            ]
+          },
+          "organization_annual_budget_amount": {
+            "anyOf": [
+              {
+                "type": "string",
+                "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Annual Budget Amount"
+          },
+          "scope_budget_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Scope Budget Amount"
+          },
+          "allocated_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocated Amount"
+          },
+          "unallocated_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Unallocated Amount"
+          },
+          "committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Committed Amount"
+          },
+          "draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Draft Pipeline Amount"
+          },
+          "available_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Available Amount"
+          },
+          "realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realized Amount"
+          },
+          "realization_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realization Draft Pipeline Amount"
+          },
+          "remaining_to_realize_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Remaining To Realize Amount"
+          },
+          "utilization_percent": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilization Percent"
+          },
+          "allocation_count": {
+            "type": "integer",
+            "title": "Allocation Count"
+          },
+          "approved_plan_count": {
+            "type": "integer",
+            "title": "Approved Plan Count"
+          },
+          "realization_count": {
+            "type": "integer",
+            "title": "Realization Count"
+          },
+          "unit_summaries": {
+            "items": {
+              "$ref": "#/components/schemas/ReportUnitSummary"
+            },
+            "type": "array",
+            "title": "Unit Summaries"
+          },
+          "monthly_realization": {
+            "items": {
+              "$ref": "#/components/schemas/ReportMonthlyRealization"
+            },
+            "type": "array",
+            "title": "Monthly Realization"
+          },
+          "category_plan_summaries": {
+            "items": {
+              "$ref": "#/components/schemas/ReportCategoryPlanSummary"
+            },
+            "type": "array",
+            "title": "Category Plan Summaries"
+          }
+        },
+        "type": "object",
+        "required": [
+          "fiscal_year_id",
+          "fiscal_year_code",
+          "fiscal_year_status",
+          "annual_budget_id",
+          "annual_budget_status",
+          "organization_annual_budget_amount",
+          "scope_budget_amount",
+          "allocated_amount",
+          "unallocated_amount",
+          "committed_amount",
+          "draft_pipeline_amount",
+          "available_amount",
+          "realized_amount",
+          "realization_draft_pipeline_amount",
+          "remaining_to_realize_amount",
+          "utilization_percent",
+          "allocation_count",
+          "approved_plan_count",
+          "realization_count",
+          "unit_summaries",
+          "monthly_realization",
+          "category_plan_summaries"
+        ],
+        "title": "FinancialSummaryResponse"
+      },
       "FiscalYearCreateRequest": {
         "properties": {
           "code": {
@@ -7102,6 +7304,138 @@
           "amount"
         ],
         "title": "RealizationUpdateRequest"
+      },
+      "ReportCategoryPlanSummary": {
+        "properties": {
+          "budget_category_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Budget Category Id"
+          },
+          "budget_category_code": {
+            "type": "string",
+            "title": "Budget Category Code"
+          },
+          "budget_category_name": {
+            "type": "string",
+            "title": "Budget Category Name"
+          },
+          "committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Committed Amount"
+          },
+          "draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Draft Pipeline Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "budget_category_id",
+          "budget_category_code",
+          "budget_category_name",
+          "committed_amount",
+          "draft_pipeline_amount"
+        ],
+        "title": "ReportCategoryPlanSummary"
+      },
+      "ReportMonthlyRealization": {
+        "properties": {
+          "month": {
+            "type": "integer",
+            "title": "Month"
+          },
+          "month_label": {
+            "type": "string",
+            "title": "Month Label"
+          },
+          "realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realized Amount"
+          }
+        },
+        "type": "object",
+        "required": [
+          "month",
+          "month_label",
+          "realized_amount"
+        ],
+        "title": "ReportMonthlyRealization"
+      },
+      "ReportUnitSummary": {
+        "properties": {
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "organization_unit_code": {
+            "type": "string",
+            "title": "Organization Unit Code"
+          },
+          "organization_unit_name": {
+            "type": "string",
+            "title": "Organization Unit Name"
+          },
+          "allocated_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Allocated Amount"
+          },
+          "committed_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Committed Amount"
+          },
+          "draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Draft Pipeline Amount"
+          },
+          "available_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Available Amount"
+          },
+          "realized_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realized Amount"
+          },
+          "realization_draft_pipeline_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Realization Draft Pipeline Amount"
+          },
+          "remaining_to_realize_amount": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Remaining To Realize Amount"
+          },
+          "utilization_percent": {
+            "type": "string",
+            "pattern": "^(?!^[-+.]*$)[+-]?0*\\d*\\.?\\d*$",
+            "title": "Utilization Percent"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_unit_id",
+          "organization_unit_code",
+          "organization_unit_name",
+          "allocated_amount",
+          "committed_amount",
+          "draft_pipeline_amount",
+          "available_amount",
+          "realized_amount",
+          "realization_draft_pipeline_amount",
+          "remaining_to_realize_amount",
+          "utilization_percent"
+        ],
+        "title": "ReportUnitSummary"
       },
       "RoleAssignmentInput": {
         "properties": {

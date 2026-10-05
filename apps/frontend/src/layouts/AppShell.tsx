@@ -40,7 +40,11 @@ const navigation: NavigationItem[] = [
     to: "/app/approvals",
     permissionAnyOf: ["annual_budgets.approve", "budget_plans.approve"],
   },
-  { label: "Laporan", to: "#", disabled: true },
+  {
+    label: "Laporan",
+    to: "/app/reports",
+    permissionAnyOf: ["reports.view"],
+  },
   {
     label: "Master Data",
     to: "/app/master-data",

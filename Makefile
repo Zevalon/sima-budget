@@ -1,4 +1,4 @@
-.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify bootstrap-admin phase0-check phase1a-check phase1b-check phase1c1-check phase1c2-check phase1d1-check phase1d2-check phase2a-check phase2b1-check phase2b2-check phase2c-check phase2d-check phase3a-check phase3b-check phase3c-check phase3d-check phase4a-check phase4b-check dev-seed dev-seed-reset dev-seed-verify
+.PHONY: help bootstrap dev-db-up dev-db-down dev-db-status backend-dev frontend-dev lint typecheck test backend-test frontend-test openapi foundation-bootstrap foundation-verify bootstrap-admin phase0-check phase1a-check phase1b-check phase1c1-check phase1c2-check phase1d1-check phase1d2-check phase2a-check phase2b1-check phase2b2-check phase2c-check phase2d-check phase3a-check phase3b-check phase3c-check phase3d-check phase4a-check phase4b-check phase4c-check phase4d-check phase5a-check dev-seed dev-seed-reset dev-seed-verify
 
 help:
 	@echo "SIMA development commands"
@@ -33,6 +33,9 @@ help:
 	@echo "  make phase3d-check          Run Phase 3C regression + Budget Plan hardening"
 	@echo "  make phase4a-check          Run Phase 3 regression + Realization core checks"
 	@echo "  make phase4b-check          Run Phase 4A regression + correction/reversal checks"
+	@echo "  make phase4c-check          Run Phase 4B regression + realization monitoring checks"
+	@echo "  make phase4d-check          Run Phase 4C regression + realization hardening checks"
+	@echo "  make phase5a-check          Run Phase 4 regression + reporting foundation checks"
 	@echo "  make dev-seed               Refresh deterministic development seed"
 	@echo "  make dev-seed-reset         RESET dev data; requires CONFIRM=RESET"
 	@echo "  make dev-seed-verify        Verify deterministic development seed"
@@ -143,6 +146,9 @@ phase4c-check:
 
 phase4d-check:
 	./scripts/check-phase4d.sh
+
+phase5a-check:
+	./scripts/check-phase5a.sh
 
 dev-seed:
 	$(MAKE) dev-db-up

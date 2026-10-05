@@ -72,6 +72,10 @@ PHASE4B_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
     ("realizations.reverse", "Reversal Realisasi Posted", "realizations"),
 )
 
+PHASE5A_PERMISSIONS: tuple[tuple[str, str, str], ...] = (
+    ("reports.view", "Lihat Laporan Anggaran", "reports"),
+)
+
 ALL_BOOTSTRAP_PERMISSIONS = (
     FOUNDATION_PERMISSIONS
     + PHASE2A_PERMISSIONS
@@ -82,6 +86,7 @@ ALL_BOOTSTRAP_PERMISSIONS = (
     + PHASE3B_PERMISSIONS
     + PHASE4A_PERMISSIONS
     + PHASE4B_PERMISSIONS
+    + PHASE5A_PERMISSIONS
 )
 
 PHASE2A_VIEW_PERMISSIONS = (
@@ -104,6 +109,7 @@ PHASE3B_UNIT_APPROVER_PERMISSIONS = ("budget_plans.approve",)
 PHASE4A_VIEW_PERMISSIONS = ("realizations.view",)
 PHASE4A_UNIT_PIC_PERMISSIONS = tuple(code for code, _, _ in PHASE4A_PERMISSIONS)
 PHASE4B_UNIT_PIC_PERMISSIONS = tuple(code for code, _, _ in PHASE4B_PERMISSIONS)
+PHASE5A_VIEW_PERMISSIONS = tuple(code for code, _, _ in PHASE5A_PERMISSIONS)
 
 DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
     (
@@ -115,7 +121,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE2B1_VIEW_PERMISSIONS
         + PHASE2C_VIEW_PERMISSIONS
         + PHASE3A_VIEW_PERMISSIONS
-        + PHASE4A_VIEW_PERMISSIONS,
+        + PHASE4A_VIEW_PERMISSIONS
+        + PHASE5A_VIEW_PERMISSIONS,
     ),
     (
         "BUDGET_ADMIN",
@@ -132,7 +139,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE2B1_BUDGET_ADMIN_PERMISSIONS
         + PHASE2C_BUDGET_ADMIN_PERMISSIONS
         + PHASE3A_VIEW_PERMISSIONS
-        + PHASE4A_VIEW_PERMISSIONS,
+        + PHASE4A_VIEW_PERMISSIONS
+        + PHASE5A_VIEW_PERMISSIONS,
     ),
     (
         "UNIT_PIC",
@@ -143,7 +151,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE3A_UNIT_PIC_PERMISSIONS
         + PHASE3B_UNIT_PIC_PERMISSIONS
         + PHASE4A_UNIT_PIC_PERMISSIONS
-        + PHASE4B_UNIT_PIC_PERMISSIONS,
+        + PHASE4B_UNIT_PIC_PERMISSIONS
+        + PHASE5A_VIEW_PERMISSIONS,
     ),
     (
         "UNIT_APPROVER",
@@ -153,7 +162,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE2A_VIEW_PERMISSIONS
         + PHASE3A_VIEW_PERMISSIONS
         + PHASE3B_UNIT_APPROVER_PERMISSIONS
-        + PHASE4A_VIEW_PERMISSIONS,
+        + PHASE4A_VIEW_PERMISSIONS
+        + PHASE5A_VIEW_PERMISSIONS,
     ),
     (
         "MANAGEMENT_APPROVER",
@@ -165,7 +175,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE2B2_APPROVER_PERMISSIONS
         + PHASE2C_VIEW_PERMISSIONS
         + PHASE3A_VIEW_PERMISSIONS
-        + PHASE4A_VIEW_PERMISSIONS,
+        + PHASE4A_VIEW_PERMISSIONS
+        + PHASE5A_VIEW_PERMISSIONS,
     ),
     (
         "AUDITOR",
@@ -183,7 +194,8 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         + PHASE2B1_VIEW_PERMISSIONS
         + PHASE2C_VIEW_PERMISSIONS
         + PHASE3A_VIEW_PERMISSIONS
-        + PHASE4A_VIEW_PERMISSIONS,
+        + PHASE4A_VIEW_PERMISSIONS
+        + PHASE5A_VIEW_PERMISSIONS,
     ),
     (
         "VIEWER",
@@ -192,6 +204,7 @@ DEFAULT_ROLE_TEMPLATES: tuple[tuple[str, str, str, tuple[str, ...]], ...] = (
         ("settings.view", "organization_units.view")
         + PHASE2A_VIEW_PERMISSIONS
         + PHASE3A_VIEW_PERMISSIONS
-        + PHASE4A_VIEW_PERMISSIONS,
+        + PHASE4A_VIEW_PERMISSIONS
+        + PHASE5A_VIEW_PERMISSIONS,
     ),
 )

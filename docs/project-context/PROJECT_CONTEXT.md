@@ -1,4 +1,4 @@
-# PROJECT CONTEXT — SIMA through Phase 4D
+# PROJECT CONTEXT — SIMA through Phase 5A
 
 SIMA is an annual budget planning and monitoring application built with React + TypeScript,
 FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
@@ -9,57 +9,52 @@ FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 - Phase 1 — Foundation
 - Phase 2 — Budget Foundation
 - Phase 3 — Budget Plan
-- CP-08 — Phase 3 Budget Plan Complete
-- Phase 4A — Realization Core
-- Phase 4B — Realization Correction, Cancellation & Reversal
-- Phase 4C — Realization Aggregates & Monitoring
+- Phase 4 — Realization
+- CP-09 — Phase 4 Realization Complete
 
-## Realization lifecycle
+## Current work — Phase 5A
 
-```text
-DRAFT -> POSTED -> REVERSED
-  \-> CANCELLED
+Phase 5A introduces the canonical reporting read model.
 
-REVERSED -> linked correction DRAFT -> POSTED
-```
+The reporting layer is scope-aware and derives financial totals from existing transactional tables.
+It does not store duplicate report totals.
 
-Financial records are not hard-deleted.
-
-## Financial execution formulas
+Canonical formulas:
 
 ```text
-Available for new plans = Allocated - Committed
-Remaining to realize    = Committed - Realized
-Plan remaining          = Approved Plan - Realized
+Available             = Allocated - Committed
+Remaining to Realize  = Committed - Realized
+Utilization           = Realized / Committed * 100
 ```
 
-Only `POSTED` realization records count as Realized.
-
-## Phase 4D hardening
-
-All realization mutations are bound to an exact workflow snapshot:
+Status contribution rules:
 
 ```text
-expected_row_version
-expected_status
-expected_plan_version_id
+Committed                  <- APPROVED Budget Plan current version
+Plan Draft Pipeline         <- DRAFT + PENDING_APPROVAL Budget Plan current version
+Realized                    <- POSTED Realization
+Realization Draft Pipeline  <- DRAFT Realization
 ```
 
-A mismatch returns `409 Conflict`.
+Realization is still plan-level, so category-level realized spending cannot be calculated faithfully.
+Phase 5A therefore exposes category plan commitment/pipeline only and does not invent category realized values.
 
-Creating a correction also increments the source realization row version so the correction relationship invalidates stale source views.
-
-Final execution invariant:
+## Reporting architecture rule
 
 ```text
-Realized <= Committed <= Allocated
+Canonical reporting service/query layer
+        |
+        +--> JSON API
+        +--> Reports UI
+        +--> future CSV / Excel / PDF
 ```
 
-Scope enforcement remains authoritative on the backend. A user can only view and mutate realization data within the organizational-unit scope granted by RBAC.
+Future reporting and export work must reuse this layer rather than duplicate formulas.
 
 ## Next
 
-After local/browser/CI validation and merge:
+After Phase 5A validation and merge:
 
-1. CP-09 — Phase 4 Realization Complete
-2. Phase 5 — Monitoring, Reporting & Export
+1. Phase 5B — Reports UI & Filters
+2. Phase 5C — Export
+3. Phase 5D — Reporting Hardening & Completion
