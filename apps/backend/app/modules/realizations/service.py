@@ -52,6 +52,25 @@ def utilization_percent(realized: Decimal, approved: Decimal) -> Decimal:
     return ((realized / approved) * Decimal("100")).quantize(MONEY_QUANTUM, rounding=ROUND_HALF_UP)
 
 
+def _assert_workflow_identity(
+    item: Realization,
+    *,
+    expected_row_version: int,
+    expected_status: RealizationStatus,
+    expected_plan_version_id: UUID,
+    action_label: str,
+) -> None:
+    if (
+        item.row_version != expected_row_version
+        or item.status != expected_status.value
+        or item.plan_version_id != expected_plan_version_id
+    ):
+        raise conflict(
+            "Data realisasi atau konteks workflow telah berubah. "
+            f"Muat ulang halaman sebelum {action_label}."
+        )
+
+
 async def _fiscal_year(
     session: AsyncSession,
     *,
@@ -461,10 +480,15 @@ async def update_realization(
         permission_code="realizations.update",
         unit_id=item.organization_unit_id,
     )
+    _assert_workflow_identity(
+        item,
+        expected_row_version=payload.expected_row_version,
+        expected_status=payload.expected_status,
+        expected_plan_version_id=payload.expected_plan_version_id,
+        action_label="menyimpan perubahan",
+    )
     if item.status != RealizationStatus.DRAFT.value:
         raise conflict("Hanya draft realisasi yang dapat diubah.")
-    if item.row_version != payload.expected_row_version:
-        raise conflict("Data realisasi telah berubah. Muat ulang halaman sebelum menyimpan.")
 
     plan, _ = await _plan_with_unit(
         session,
@@ -558,10 +582,15 @@ async def post_realization(
         permission_code="realizations.post",
         unit_id=item.organization_unit_id,
     )
+    _assert_workflow_identity(
+        item,
+        expected_row_version=payload.expected_row_version,
+        expected_status=payload.expected_status,
+        expected_plan_version_id=payload.expected_plan_version_id,
+        action_label="posting",
+    )
     if item.status != RealizationStatus.DRAFT.value:
         raise conflict("Hanya draft realisasi yang dapat diposting.")
-    if item.row_version != payload.expected_row_version:
-        raise conflict("Data realisasi telah berubah. Muat ulang sebelum posting.")
 
     plan, _ = await _plan_with_unit(
         session,
@@ -642,10 +671,15 @@ async def cancel_realization(
         permission_code="realizations.cancel",
         unit_id=item.organization_unit_id,
     )
+    _assert_workflow_identity(
+        item,
+        expected_row_version=payload.expected_row_version,
+        expected_status=payload.expected_status,
+        expected_plan_version_id=payload.expected_plan_version_id,
+        action_label="membatalkan",
+    )
     if item.status != RealizationStatus.DRAFT.value:
         raise conflict("Hanya draft realisasi yang dapat dibatalkan.")
-    if item.row_version != payload.expected_row_version:
-        raise conflict("Data realisasi telah berubah. Muat ulang sebelum membatalkan.")
 
     fiscal_year = await _fiscal_year(
         session,
@@ -705,10 +739,15 @@ async def reverse_realization(
         permission_code="realizations.reverse",
         unit_id=item.organization_unit_id,
     )
+    _assert_workflow_identity(
+        item,
+        expected_row_version=payload.expected_row_version,
+        expected_status=payload.expected_status,
+        expected_plan_version_id=payload.expected_plan_version_id,
+        action_label="reversal",
+    )
     if item.status != RealizationStatus.POSTED.value:
         raise conflict("Hanya realisasi POSTED yang dapat direversal.")
-    if item.row_version != payload.expected_row_version:
-        raise conflict("Data realisasi telah berubah. Muat ulang sebelum reversal.")
 
     plan, _ = await _plan_with_unit(
         session,
@@ -787,10 +826,15 @@ async def create_correction_draft(
         permission_code="realizations.create",
         unit_id=source.organization_unit_id,
     )
+    _assert_workflow_identity(
+        source,
+        expected_row_version=payload.expected_row_version,
+        expected_status=payload.expected_status,
+        expected_plan_version_id=payload.expected_plan_version_id,
+        action_label="membuat koreksi",
+    )
     if source.status != RealizationStatus.REVERSED.value:
         raise conflict("Draft koreksi hanya dapat dibuat dari realisasi REVERSED.")
-    if source.row_version != payload.expected_row_version:
-        raise conflict("Data realisasi telah berubah. Muat ulang sebelum membuat koreksi.")
 
     existing = await session.scalar(
         select(Realization.id).where(Realization.correction_of_id == source.id)
@@ -844,6 +888,7 @@ async def create_correction_draft(
         correction_of_id=source.id,
     )
     session.add(item)
+    source.row_version += 1
     await session.flush()
     record_audit(
         session,
@@ -856,6 +901,7 @@ async def create_correction_draft(
             "status": item.status,
             "amount": str(item.amount),
             "correction_of_id": str(source.id),
+            "source_row_version": source.row_version,
         },
         metadata_json={
             "source_realization_number": source.realization_number,

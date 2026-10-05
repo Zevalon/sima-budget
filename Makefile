@@ -141,6 +141,9 @@ phase4b-check:
 phase4c-check:
 	./scripts/check-phase4c.sh
 
+phase4d-check:
+	./scripts/check-phase4d.sh
+
 dev-seed:
 	$(MAKE) dev-db-up
 	cd apps/backend && uv run alembic upgrade head

@@ -6533,11 +6533,21 @@
             "type": "integer",
             "minimum": 1.0,
             "title": "Expected Row Version"
+          },
+          "expected_status": {
+            "$ref": "#/components/schemas/RealizationStatus"
+          },
+          "expected_plan_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Expected Plan Version Id"
           }
         },
         "type": "object",
         "required": [
-          "expected_row_version"
+          "expected_row_version",
+          "expected_status",
+          "expected_plan_version_id"
         ],
         "title": "RealizationCorrectionRequest"
       },
@@ -6683,11 +6693,21 @@
             "type": "integer",
             "minimum": 1.0,
             "title": "Expected Row Version"
+          },
+          "expected_status": {
+            "$ref": "#/components/schemas/RealizationStatus"
+          },
+          "expected_plan_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Expected Plan Version Id"
           }
         },
         "type": "object",
         "required": [
-          "expected_row_version"
+          "expected_row_version",
+          "expected_status",
+          "expected_plan_version_id"
         ],
         "title": "RealizationPostRequest"
       },
@@ -6989,6 +7009,14 @@
             "minimum": 1.0,
             "title": "Expected Row Version"
           },
+          "expected_status": {
+            "$ref": "#/components/schemas/RealizationStatus"
+          },
+          "expected_plan_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Expected Plan Version Id"
+          },
           "reason": {
             "type": "string",
             "maxLength": 500,
@@ -6999,6 +7027,8 @@
         "type": "object",
         "required": [
           "expected_row_version",
+          "expected_status",
+          "expected_plan_version_id",
           "reason"
         ],
         "title": "RealizationStatusActionRequest"
@@ -7009,6 +7039,14 @@
             "type": "integer",
             "minimum": 1.0,
             "title": "Expected Row Version"
+          },
+          "expected_status": {
+            "$ref": "#/components/schemas/RealizationStatus"
+          },
+          "expected_plan_version_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Expected Plan Version Id"
           },
           "realization_date": {
             "type": "string",
@@ -7056,6 +7094,8 @@
         "type": "object",
         "required": [
           "expected_row_version",
+          "expected_status",
+          "expected_plan_version_id",
           "realization_date",
           "reference_number",
           "description",

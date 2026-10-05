@@ -1,4 +1,4 @@
-# PROJECT CONTEXT — SIMA through Phase 4C
+# PROJECT CONTEXT — SIMA through Phase 4D
 
 SIMA is an annual budget planning and monitoring application built with React + TypeScript,
 FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
@@ -12,6 +12,7 @@ FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 - CP-08 — Phase 3 Budget Plan Complete
 - Phase 4A — Realization Core
 - Phase 4B — Realization Correction, Cancellation & Reversal
+- Phase 4C — Realization Aggregates & Monitoring
 
 ## Realization lifecycle
 
@@ -22,20 +23,9 @@ DRAFT -> POSTED -> REVERSED
 REVERSED -> linked correction DRAFT -> POSTED
 ```
 
-Financial records are never hard-deleted. REVERSED and CANCELLED remain historical.
+Financial records are not hard-deleted.
 
-## Phase 4C — Aggregates & Monitoring
-
-Cross-domain flow:
-
-```text
-Annual Budget
-  -> Allocated
-  -> Committed APPROVED Plans
-  -> Realized POSTED Transactions
-```
-
-Formulas:
+## Financial execution formulas
 
 ```text
 Available for new plans = Allocated - Committed
@@ -43,30 +33,33 @@ Remaining to realize    = Committed - Realized
 Plan remaining          = Approved Plan - Realized
 ```
 
-Pipelines remain separate:
+Only `POSTED` realization records count as Realized.
+
+## Phase 4D hardening
+
+All realization mutations are bound to an exact workflow snapshot:
 
 ```text
-Plan Draft Pipeline        = DRAFT + PENDING_APPROVAL plans
-Realization Draft Pipeline = DRAFT realizations
+expected_row_version
+expected_status
+expected_plan_version_id
 ```
 
-Realization context includes utilization percentages and plan-level monitoring.
-Dashboard and Unit Allocation views expose execution aggregates.
+A mismatch returns `409 Conflict`.
 
-Concurrency rule:
+Creating a correction also increments the source realization row version so the correction relationship invalidates stale source views.
+
+Final execution invariant:
 
 ```text
 Realized <= Committed <= Allocated
 ```
 
-Concurrent postings against one plan are serialized through the approved-plan lock so they cannot
-jointly exceed the approved amount.
-
-## Seed baseline
-
-The Phase 4B cumulative development seed already contains DRAFT, POSTED, CANCELLED, REVERSED, and
-correction DRAFT records and remains suitable for Phase 4C monitoring smoke tests.
+Scope enforcement remains authoritative on the backend. A user can only view and mutate realization data within the organizational-unit scope granted by RBAC.
 
 ## Next
 
-Phase 4D — Realization Hardening & Phase 4 Completion.
+After local/browser/CI validation and merge:
+
+1. CP-09 — Phase 4 Realization Complete
+2. Phase 5 — Monitoring, Reporting & Export
