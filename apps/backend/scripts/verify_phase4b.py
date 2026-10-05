@@ -314,12 +314,19 @@ async def verify() -> None:
                 },
             )
             assert cancelled_source.status_code == 201, cancelled_source.text
-            cancelled_id = cancelled_source.json()["id"]
+            cancelled_source_data = cancelled_source.json()
+            cancelled_id = cancelled_source_data["id"]
+            cancelled_plan_version_id = cancelled_source_data["plan_version_id"]
 
             stale_cancel = await client.post(
                 f"/api/v1/realizations/{cancelled_id}/cancel",
                 headers=headers,
-                json={"expected_row_version": 9, "reason": "Stale cancellation attempt"},
+                json={
+                    "expected_row_version": 9,
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": cancelled_plan_version_id,
+                    "reason": "Stale cancellation attempt",
+                },
             )
             assert stale_cancel.status_code == 409, stale_cancel.text
 
@@ -328,6 +335,8 @@ async def verify() -> None:
                 headers=headers,
                 json={
                     "expected_row_version": 1,
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": cancelled_plan_version_id,
                     "reason": "Dokumen pengadaan dibatalkan.",
                 },
             )
@@ -349,25 +358,41 @@ async def verify() -> None:
                 },
             )
             assert source.status_code == 201, source.text
-            source_id = source.json()["id"]
+            source_data = source.json()
+            source_id = source_data["id"]
+            source_plan_version_id = source_data["plan_version_id"]
             posted = await client.post(
                 f"/api/v1/realizations/{source_id}/post",
                 headers=headers,
-                json={"expected_row_version": 1},
+                json={
+                    "expected_row_version": 1,
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": source_plan_version_id,
+                },
             )
             assert posted.status_code == 200, posted.text
             assert Decimal(posted.json()["plan_realized_amount"]) == Decimal("300.00")
 
             missing_csrf = await client.post(
                 f"/api/v1/realizations/{source_id}/reverse",
-                json={"expected_row_version": 2, "reason": "Missing CSRF test"},
+                json={
+                    "expected_row_version": 2,
+                    "expected_status": "POSTED",
+                    "expected_plan_version_id": source_plan_version_id,
+                    "reason": "Missing CSRF test",
+                },
             )
             assert missing_csrf.status_code == 403, missing_csrf.text
 
             stale_reverse = await client.post(
                 f"/api/v1/realizations/{source_id}/reverse",
                 headers=headers,
-                json={"expected_row_version": 1, "reason": "Stale reversal attempt"},
+                json={
+                    "expected_row_version": 1,
+                    "expected_status": "POSTED",
+                    "expected_plan_version_id": source_plan_version_id,
+                    "reason": "Stale reversal attempt",
+                },
             )
             assert stale_reverse.status_code == 409, stale_reverse.text
 
@@ -376,6 +401,8 @@ async def verify() -> None:
                 headers=headers,
                 json={
                     "expected_row_version": 2,
+                    "expected_status": "POSTED",
+                    "expected_plan_version_id": source_plan_version_id,
                     "reason": "Nominal dokumen harus dikoreksi.",
                 },
             )
@@ -388,7 +415,11 @@ async def verify() -> None:
             correction = await client.post(
                 f"/api/v1/realizations/{source_id}/correction",
                 headers=headers,
-                json={"expected_row_version": reversed_data["row_version"]},
+                json={
+                    "expected_row_version": reversed_data["row_version"],
+                    "expected_status": "REVERSED",
+                    "expected_plan_version_id": source_plan_version_id,
+                },
             )
             assert correction.status_code == 201, correction.text
             correction_data = correction.json()
@@ -398,7 +429,11 @@ async def verify() -> None:
             duplicate_correction = await client.post(
                 f"/api/v1/realizations/{source_id}/correction",
                 headers=headers,
-                json={"expected_row_version": reversed_data["row_version"]},
+                json={
+                    "expected_row_version": reversed_data["row_version"],
+                    "expected_status": "REVERSED",
+                    "expected_plan_version_id": source_plan_version_id,
+                },
             )
             assert duplicate_correction.status_code == 409, duplicate_correction.text
 
@@ -407,6 +442,8 @@ async def verify() -> None:
                 headers=headers,
                 json={
                     "expected_row_version": 1,
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": correction_data["plan_version_id"],
                     "realization_date": valid_date,
                     "reference_number": "P4B-CORRECTED-001",
                     "description": "Corrected realization",
@@ -419,7 +456,11 @@ async def verify() -> None:
             corrected_posted = await client.post(
                 f"/api/v1/realizations/{correction_data['id']}/post",
                 headers=headers,
-                json={"expected_row_version": corrected.json()["row_version"]},
+                json={
+                    "expected_row_version": corrected.json()["row_version"],
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": correction_data["plan_version_id"],
+                },
             )
             assert corrected_posted.status_code == 200, corrected_posted.text
             assert Decimal(corrected_posted.json()["plan_realized_amount"]) == Decimal("250.00")
@@ -430,6 +471,8 @@ async def verify() -> None:
                 headers=headers,
                 json={
                     "expected_row_version": corrected_posted.json()["row_version"],
+                    "expected_status": "POSTED",
+                    "expected_plan_version_id": correction_data["plan_version_id"],
                     "reason": "Posted records cannot be cancelled.",
                 },
             )

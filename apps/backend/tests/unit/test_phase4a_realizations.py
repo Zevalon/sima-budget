@@ -8,6 +8,7 @@ from pydantic import ValidationError
 from app.modules.realizations.schemas import (
     RealizationCreateRequest,
     RealizationPostRequest,
+    RealizationStatus,
     RealizationUpdateRequest,
 )
 from app.modules.realizations.service import normalize_money
@@ -28,15 +29,23 @@ def test_realization_amount_must_be_positive() -> None:
         )
 
 
-def test_realization_mutations_require_expected_version() -> None:
+def test_realization_mutations_require_expected_identity() -> None:
+    plan_version_id = uuid4()
     update = RealizationUpdateRequest(
         expected_row_version=2,
+        expected_status=RealizationStatus.DRAFT,
+        expected_plan_version_id=plan_version_id,
         realization_date=date(2026, 2, 1),
         reference_number="DOC-002",
         description="Update",
         vendor_name=None,
         amount=Decimal("100.00"),
     )
-    post = RealizationPostRequest(expected_row_version=2)
+    post = RealizationPostRequest(
+        expected_row_version=2,
+        expected_status=RealizationStatus.DRAFT,
+        expected_plan_version_id=plan_version_id,
+    )
     assert update.expected_row_version == 2
-    assert post.expected_row_version == 2
+    assert update.expected_status.value == "DRAFT"
+    assert post.expected_plan_version_id == plan_version_id

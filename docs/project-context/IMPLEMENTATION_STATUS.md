@@ -8,21 +8,22 @@
 - Phase 3 — Budget Plan
 - Phase 4A — Realization Core
 - Phase 4B — Realization Correction, Cancellation & Reversal
+- Phase 4C — Realization Aggregates & Monitoring
 
 ## Current
 
-### Phase 4C — Realization Aggregates & Monitoring
+### Phase 4D — Realization Hardening & Phase 4 Completion
 
-Implementation adds:
+Implementation hardens:
 
-- cross-domain execution aggregates from Annual Budget → Allocation → Commitment → Realization;
-- Realized and Realization Draft Pipeline on Unit Allocation summaries;
-- Remaining to Realize = Committed - Realized;
-- utilization percentage per approved plan and per scoped realization context;
-- monitoring UI on Dashboard, Unit Allocation, and Realization pages;
-- explicit concurrent posting verification;
-- invariant validation: `Realized <= Committed <= Allocated`.
+- realization workflow identity using `row_version + status + plan_version_id`;
+- stale update/post/cancel/reverse/correction protection;
+- source row-version mutation when correction lineage is created;
+- final scoped-access verification;
+- consistency between realization context and Unit Allocation aggregates;
+- final Phase 4 regression gate.
 
-## Next after Phase 4C validation
+## Next after Phase 4D validation
 
-Phase 4D — Realization Hardening & Phase 4 Completion.
+- CP-09 — Phase 4 Realization Complete
+- Phase 5 — Monitoring, Reporting & Export

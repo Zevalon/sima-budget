@@ -26,6 +26,8 @@ class RealizationCreateRequest(BaseModel):
 
 class RealizationUpdateRequest(BaseModel):
     expected_row_version: int = Field(ge=1)
+    expected_status: RealizationStatus
+    expected_plan_version_id: UUID
     realization_date: date
     reference_number: str = Field(min_length=1, max_length=120)
     description: str = Field(min_length=1, max_length=500)
@@ -35,10 +37,14 @@ class RealizationUpdateRequest(BaseModel):
 
 class RealizationPostRequest(BaseModel):
     expected_row_version: int = Field(ge=1)
+    expected_status: RealizationStatus
+    expected_plan_version_id: UUID
 
 
 class RealizationStatusActionRequest(BaseModel):
     expected_row_version: int = Field(ge=1)
+    expected_status: RealizationStatus
+    expected_plan_version_id: UUID
     reason: str = Field(min_length=3, max_length=500)
 
     @field_validator("reason")
@@ -52,6 +58,8 @@ class RealizationStatusActionRequest(BaseModel):
 
 class RealizationCorrectionRequest(BaseModel):
     expected_row_version: int = Field(ge=1)
+    expected_status: RealizationStatus
+    expected_plan_version_id: UUID
 
 
 class RealizationPlanOption(BaseModel):

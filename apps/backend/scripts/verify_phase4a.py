@@ -286,10 +286,17 @@ async def login_client() -> tuple[AsyncClient, dict[str, str]]:
 async def concurrent_post(realization_id: str) -> int:
     client, headers = await login_client()
     try:
+        detail = await client.get(f"/api/v1/realizations/{realization_id}")
+        assert detail.status_code == 200, detail.text
+        data = detail.json()
         response = await client.post(
             f"/api/v1/realizations/{realization_id}/post",
             headers=headers,
-            json={"expected_row_version": 1},
+            json={
+                "expected_row_version": data["row_version"],
+                "expected_status": data["status"],
+                "expected_plan_version_id": data["plan_version_id"],
+            },
         )
         return response.status_code
     finally:
@@ -348,12 +355,15 @@ async def verify() -> None:
             assert created_data["status"] == "DRAFT"
             assert created_data["row_version"] == 1
             realization_id = created_data["id"]
+            plan_version_id = created_data["plan_version_id"]
 
             updated = await client.patch(
                 f"/api/v1/realizations/{realization_id}",
                 headers=headers,
                 json={
                     "expected_row_version": 1,
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": plan_version_id,
                     "realization_date": valid_date,
                     "reference_number": "P4A-DOC-001-R1",
                     "description": "Updated realization draft",
@@ -369,6 +379,8 @@ async def verify() -> None:
                 headers=headers,
                 json={
                     "expected_row_version": 1,
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": plan_version_id,
                     "realization_date": valid_date,
                     "reference_number": "P4A-STALE",
                     "description": "Stale",
@@ -380,7 +392,11 @@ async def verify() -> None:
             posted = await client.post(
                 f"/api/v1/realizations/{realization_id}/post",
                 headers=headers,
-                json={"expected_row_version": 2},
+                json={
+                    "expected_row_version": 2,
+                    "expected_status": "DRAFT",
+                    "expected_plan_version_id": plan_version_id,
+                },
             )
             assert posted.status_code == 200, posted.text
             posted_data = posted.json()
@@ -393,6 +409,8 @@ async def verify() -> None:
                 headers=headers,
                 json={
                     "expected_row_version": posted_data["row_version"],
+                    "expected_status": "POSTED",
+                    "expected_plan_version_id": plan_version_id,
                     "realization_date": valid_date,
                     "reference_number": "P4A-IMMUTABLE",
                     "description": "Must fail",

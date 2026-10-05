@@ -103,6 +103,8 @@ export function RealizationsPage() {
     try {
       await updateRealization(item.id, {
         expected_row_version: item.row_version,
+        expected_status: item.status,
+        expected_plan_version_id: item.plan_version_id,
         realization_date: getFormString(data, "realization_date"),
         reference_number: getFormString(data, "reference_number"),
         description: getFormString(data, "description"),
@@ -124,7 +126,7 @@ export function RealizationsPage() {
     setMessage(null);
     setErrorMessage(null);
     try {
-      await cancelRealization(item.id, item.row_version, reason);
+      await cancelRealization(item.id, item.row_version, item.status, item.plan_version_id, reason);
       setMessage("Draft realisasi berhasil dibatalkan.");
       await reload();
     } catch (error) {
@@ -143,7 +145,13 @@ export function RealizationsPage() {
     setMessage(null);
     setErrorMessage(null);
     try {
-      await reverseRealization(item.id, item.row_version, reason);
+      await reverseRealization(
+        item.id,
+        item.row_version,
+        item.status,
+        item.plan_version_id,
+        reason,
+      );
       setMessage("Realisasi berhasil direversal.");
       await reload();
     } catch (error) {
@@ -158,7 +166,7 @@ export function RealizationsPage() {
     setMessage(null);
     setErrorMessage(null);
     try {
-      await createCorrectionDraft(item.id, item.row_version);
+      await createCorrectionDraft(item.id, item.row_version, item.status, item.plan_version_id);
       setMessage("Draft koreksi berhasil dibuat. Silakan review lalu posting jika sudah benar.");
       await reload();
     } catch (error) {
@@ -175,7 +183,7 @@ export function RealizationsPage() {
     setMessage(null);
     setErrorMessage(null);
     try {
-      await postRealization(item.id, item.row_version);
+      await postRealization(item.id, item.row_version, item.status, item.plan_version_id);
       setMessage("Realisasi berhasil diposting.");
       await reload();
     } catch (error) {
