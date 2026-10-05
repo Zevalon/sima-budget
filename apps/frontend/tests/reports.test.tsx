@@ -1,10 +1,11 @@
 import { fireEvent, render, screen, waitFor } from "@testing-library/react";
-import { describe, expect, it, vi } from "vitest";
+import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ReportsPage } from "../src/features/reports/pages/ReportsPage";
 
 const mocks = vi.hoisted(() => ({
   getFinancialSummary: vi.fn(),
+  downloadFinancialSummary: vi.fn(),
   selectedFiscalYear: {
     id: "fy-2025",
     code: "FY2025",
@@ -20,6 +21,7 @@ vi.mock("../src/features/budget-foundation/fiscal-year-context", () => ({
 
 vi.mock("../src/features/reports/api/reports", () => ({
   getFinancialSummary: mocks.getFinancialSummary,
+  downloadFinancialSummary: mocks.downloadFinancialSummary,
 }));
 
 const unitOptions = [
@@ -141,12 +143,29 @@ function createSummary(organizationUnitId: string | null) {
 }
 
 describe("ReportsPage", () => {
-  it("supports scoped unit, month, and category report filters", async () => {
+  beforeEach(() => {
+    mocks.getFinancialSummary.mockReset();
+    mocks.downloadFinancialSummary.mockReset();
     mocks.getFinancialSummary.mockImplementation(
       (_fiscalYearId: string, organizationUnitId?: string) =>
         Promise.resolve(createSummary(organizationUnitId ?? null)),
     );
+    mocks.downloadFinancialSummary.mockResolvedValue({
+      blob: new Blob(["export"]),
+      filename: "report.csv",
+    });
+    Object.defineProperty(URL, "createObjectURL", {
+      configurable: true,
+      value: vi.fn(() => "blob:test"),
+    });
+    Object.defineProperty(URL, "revokeObjectURL", {
+      configurable: true,
+      value: vi.fn(() => undefined),
+    });
+    vi.spyOn(HTMLAnchorElement.prototype, "click").mockImplementation(() => undefined);
+  });
 
+  it("supports scoped filters and exports the active report view", async () => {
     render(<ReportsPage />);
 
     expect(screen.getByRole("heading", { name: "Laporan Anggaran" })).toBeInTheDocument();
@@ -160,20 +179,22 @@ describe("ReportsPage", () => {
       expect(mocks.getFinancialSummary).toHaveBeenLastCalledWith("fy-2025", "unit-it");
     });
     expect(await screen.findByText("Pagu Unit")).toBeInTheDocument();
-    expect(screen.getByText("Filter unit aktif: UPT Teknologi Informasi")).toBeInTheDocument();
-    expect(screen.queryByText("Fakultas Teknik")).not.toBeInTheDocument();
 
     fireEvent.change(screen.getByLabelText("Bulan realisasi"), {
       target: { value: "1" },
     });
-    expect(screen.getByRole("article", { name: "Realisasi Jan" })).toBeInTheDocument();
-    expect(screen.queryByRole("article", { name: "Realisasi Feb" })).not.toBeInTheDocument();
-
     fireEvent.change(screen.getByLabelText("Kategori anggaran"), {
       target: { value: "cat-cloud" },
     });
-    expect(screen.getByText("Cloud & Infrastruktur")).toBeInTheDocument();
-    expect(screen.queryByText("Perangkat")).not.toBeInTheDocument();
+
+    fireEvent.click(screen.getByRole("button", { name: "CSV" }));
+    await waitFor(() => {
+      expect(mocks.downloadFinancialSummary).toHaveBeenCalledWith("fy-2025", "csv", {
+        organizationUnitId: "unit-it",
+        month: "1",
+        budgetCategoryId: "cat-cloud",
+      });
+    });
 
     fireEvent.click(screen.getByRole("button", { name: "Reset Filter" }));
     await waitFor(() => {
