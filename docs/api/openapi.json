@@ -3750,6 +3750,23 @@
               "format": "uuid",
               "title": "Fiscal Year Id"
             }
+          },
+          {
+            "name": "organization_unit_id",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "anyOf": [
+                {
+                  "type": "string",
+                  "format": "uuid"
+                },
+                {
+                  "type": "null"
+                }
+              ],
+              "title": "Organization Unit Id"
+            }
           }
         ],
         "responses": {
@@ -6009,6 +6026,18 @@
           "fiscal_year_status": {
             "$ref": "#/components/schemas/FiscalYearStatus"
           },
+          "organization_unit_filter_id": {
+            "anyOf": [
+              {
+                "type": "string",
+                "format": "uuid"
+              },
+              {
+                "type": "null"
+              }
+            ],
+            "title": "Organization Unit Filter Id"
+          },
           "annual_budget_id": {
             "anyOf": [
               {
@@ -6105,6 +6134,13 @@
             "type": "integer",
             "title": "Realization Count"
           },
+          "unit_filter_options": {
+            "items": {
+              "$ref": "#/components/schemas/ReportUnitOption"
+            },
+            "type": "array",
+            "title": "Unit Filter Options"
+          },
           "unit_summaries": {
             "items": {
               "$ref": "#/components/schemas/ReportUnitSummary"
@@ -6132,6 +6168,7 @@
           "fiscal_year_id",
           "fiscal_year_code",
           "fiscal_year_status",
+          "organization_unit_filter_id",
           "annual_budget_id",
           "annual_budget_status",
           "organization_annual_budget_amount",
@@ -6148,6 +6185,7 @@
           "allocation_count",
           "approved_plan_count",
           "realization_count",
+          "unit_filter_options",
           "unit_summaries",
           "monthly_realization",
           "category_plan_summaries"
@@ -7364,6 +7402,30 @@
           "realized_amount"
         ],
         "title": "ReportMonthlyRealization"
+      },
+      "ReportUnitOption": {
+        "properties": {
+          "organization_unit_id": {
+            "type": "string",
+            "format": "uuid",
+            "title": "Organization Unit Id"
+          },
+          "organization_unit_code": {
+            "type": "string",
+            "title": "Organization Unit Code"
+          },
+          "organization_unit_name": {
+            "type": "string",
+            "title": "Organization Unit Name"
+          }
+        },
+        "type": "object",
+        "required": [
+          "organization_unit_id",
+          "organization_unit_code",
+          "organization_unit_name"
+        ],
+        "title": "ReportUnitOption"
       },
       "ReportUnitSummary": {
         "properties": {

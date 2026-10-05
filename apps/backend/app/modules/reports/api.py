@@ -18,9 +18,11 @@ async def financial_summary_endpoint(
     session: Annotated[AsyncSession, Depends(get_db_session)],
     context: Annotated[AuthContext, Depends(RequirePermission("reports.view"))],
     fiscal_year_id: Annotated[UUID, Query()],
+    organization_unit_id: Annotated[UUID | None, Query()] = None,
 ) -> FinancialSummaryResponse:
     return await get_financial_summary(
         session,
         fiscal_year_id=fiscal_year_id,
         user_id=context.user.id,
+        organization_unit_id=organization_unit_id,
     )

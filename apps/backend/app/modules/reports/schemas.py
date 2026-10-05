@@ -7,6 +7,12 @@ from app.modules.annual_budgets.schemas import AnnualBudgetStatus
 from app.modules.budget_foundation.schemas import FiscalYearStatus
 
 
+class ReportUnitOption(BaseModel):
+    organization_unit_id: UUID
+    organization_unit_code: str
+    organization_unit_name: str
+
+
 class ReportUnitSummary(BaseModel):
     organization_unit_id: UUID
     organization_unit_code: str
@@ -39,6 +45,7 @@ class FinancialSummaryResponse(BaseModel):
     fiscal_year_id: UUID
     fiscal_year_code: str
     fiscal_year_status: FiscalYearStatus
+    organization_unit_filter_id: UUID | None
     annual_budget_id: UUID | None
     annual_budget_status: AnnualBudgetStatus | None
     organization_annual_budget_amount: Decimal | None
@@ -55,6 +62,7 @@ class FinancialSummaryResponse(BaseModel):
     allocation_count: int
     approved_plan_count: int
     realization_count: int
+    unit_filter_options: list[ReportUnitOption]
     unit_summaries: list[ReportUnitSummary]
     monthly_realization: list[ReportMonthlyRealization]
     category_plan_summaries: list[ReportCategoryPlanSummary]

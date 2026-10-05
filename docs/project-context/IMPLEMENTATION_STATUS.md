@@ -8,21 +8,23 @@
 - Phase 3 — Budget Plan
 - Phase 4 — Realization
 - CP-09 — Phase 4 Realization Complete
+- Phase 5A — Reporting Foundation & Financial Summary API
 
 ## Current
 
-### Phase 5A — Reporting Foundation & Financial Summary API
+### Phase 5B — Reports UI & Filters
 
-Implementation establishes:
+Implementation adds:
 
-- `reports.view` permission with existing RBAC scopes;
-- one canonical financial-summary calculation layer;
-- scoped Unit / Monthly / Category plan summaries;
-- minimal report screen for read-model validation;
-- regression verification against the completed realization domain.
+- scoped server-side organization-unit filtering;
+- report section navigation;
+- Unit / Month / Category filters;
+- detailed Unit and Category tables;
+- monthly realization visualization;
+- explicit loading / empty / error / active-filter states;
+- stale report-response protection.
 
-## Next after Phase 5A validation
+## Next after Phase 5B validation
 
-- Phase 5B — Reports UI & Filters
 - Phase 5C — CSV / Excel / PDF Export
 - Phase 5D — Reporting Hardening & Phase 5 Completion

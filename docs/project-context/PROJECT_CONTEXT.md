@@ -1,4 +1,4 @@
-# PROJECT CONTEXT — SIMA through Phase 5A
+# PROJECT CONTEXT — SIMA through Phase 5B
 
 SIMA is an annual budget planning and monitoring application built with React + TypeScript,
 FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
@@ -11,15 +11,28 @@ FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 - Phase 3 — Budget Plan
 - Phase 4 — Realization
 - CP-09 — Phase 4 Realization Complete
+- Phase 5A — Reporting Foundation & Financial Summary API
 
-## Current work — Phase 5A
+## Current work — Phase 5B
 
-Phase 5A introduces the canonical reporting read model.
+Phase 5B turns the canonical reporting read model into an operational report UI.
 
-The reporting layer is scope-aware and derives financial totals from existing transactional tables.
-It does not store duplicate report totals.
+The server accepts an optional `organization_unit_id` report filter. The requested unit must be
+inside the user's existing `reports.view` scope. A unit outside that scope is rejected.
 
-Canonical formulas:
+The report screen now provides:
+
+- report section navigation;
+- organization-unit filter;
+- month filter;
+- category filter;
+- expanded unit financial table;
+- monthly realization bar visualization;
+- category commitment / plan-pipeline breakdown.
+
+## Reporting semantics
+
+Canonical formulas remain server-owned:
 
 ```text
 Available             = Allocated - Committed
@@ -27,34 +40,27 @@ Remaining to Realize  = Committed - Realized
 Utilization           = Realized / Committed * 100
 ```
 
-Status contribution rules:
+The organization-unit filter recalculates the canonical report for the selected permitted unit.
 
-```text
-Committed                  <- APPROVED Budget Plan current version
-Plan Draft Pipeline         <- DRAFT + PENDING_APPROVAL Budget Plan current version
-Realized                    <- POSTED Realization
-Realization Draft Pipeline  <- DRAFT Realization
-```
+The month filter limits only the monthly visualization; cumulative fiscal-year totals remain
+cumulative.
 
-Realization is still plan-level, so category-level realized spending cannot be calculated faithfully.
-Phase 5A therefore exposes category plan commitment/pipeline only and does not invent category realized values.
+The category filter limits the category plan breakdown only. Category-level Realized is not shown
+because Realization is not item/category attributed in the current domain model.
 
-## Reporting architecture rule
+## Reporting architecture
 
 ```text
 Canonical reporting service/query layer
         |
         +--> JSON API
-        +--> Reports UI
+        +--> Reports UI + filters
         +--> future CSV / Excel / PDF
 ```
 
-Future reporting and export work must reuse this layer rather than duplicate formulas.
-
 ## Next
 
-After Phase 5A validation and merge:
+After Phase 5B validation and merge:
 
-1. Phase 5B — Reports UI & Filters
-2. Phase 5C — Export
-3. Phase 5D — Reporting Hardening & Completion
+1. Phase 5C — CSV / Excel / PDF Export
+2. Phase 5D — Reporting Hardening & Completion
