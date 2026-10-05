@@ -1,66 +1,41 @@
-# PROJECT CONTEXT — SIMA through Phase 5B
+# PROJECT CONTEXT - SIMA through Phase 5C
 
 SIMA is an annual budget planning and monitoring application built with React + TypeScript,
 FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 
 ## Completed milestones
 
-- Phase 0 — Repository & Tooling
-- Phase 1 — Foundation
-- Phase 2 — Budget Foundation
-- Phase 3 — Budget Plan
-- Phase 4 — Realization
-- CP-09 — Phase 4 Realization Complete
-- Phase 5A — Reporting Foundation & Financial Summary API
+- Phase 0 - Repository & Tooling
+- Phase 1 - Foundation
+- Phase 2 - Budget Foundation
+- Phase 3 - Budget Plan
+- Phase 4 - Realization
+- CP-09 - Phase 4 Realization Complete
+- Phase 5A - Reporting Foundation
+- Phase 5B - Reports UI & Filters
 
-## Current work — Phase 5B
+## Current work - Phase 5C
 
-Phase 5B turns the canonical reporting read model into an operational report UI.
+Phase 5C adds CSV, Excel, and PDF download formats on top of the canonical reporting model.
 
-The server accepts an optional `organization_unit_id` report filter. The requested unit must be
-inside the user's existing `reports.view` scope. A unit outside that scope is rejected.
+The export endpoint reuses the same organization-unit scope guard as the JSON report endpoint.
 
-The report screen now provides:
+The frontend sends the active Unit, Month, and Category filters to the export endpoint. Unit filtering recalculates the canonical server report. Month and category filtering only limit their breakdown sections and do not rewrite fiscal-year totals.
 
-- report section navigation;
-- organization-unit filter;
-- month filter;
-- category filter;
-- expanded unit financial table;
-- monthly realization bar visualization;
-- category commitment / plan-pipeline breakdown.
-
-## Reporting semantics
-
-Canonical formulas remain server-owned:
-
-```text
-Available             = Allocated - Committed
-Remaining to Realize  = Committed - Realized
-Utilization           = Realized / Committed * 100
-```
-
-The organization-unit filter recalculates the canonical report for the selected permitted unit.
-
-The month filter limits only the monthly visualization; cumulative fiscal-year totals remain
-cumulative.
-
-The category filter limits the category plan breakdown only. Category-level Realized is not shown
-because Realization is not item/category attributed in the current domain model.
-
-## Reporting architecture
+## Export architecture
 
 ```text
 Canonical reporting service/query layer
         |
         +--> JSON API
         +--> Reports UI + filters
-        +--> future CSV / Excel / PDF
+        +--> CSV export
+        +--> Excel (.xlsx) export
+        +--> PDF export
 ```
+
+No new database tables or columns are introduced in Phase 5C.
 
 ## Next
 
-After Phase 5B validation and merge:
-
-1. Phase 5C — CSV / Excel / PDF Export
-2. Phase 5D — Reporting Hardening & Completion
+Phase 5D - Reporting Hardening & Phase 5 Completion.
