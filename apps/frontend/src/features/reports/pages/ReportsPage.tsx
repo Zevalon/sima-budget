@@ -2,7 +2,11 @@ import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 
 import { ApiError } from "../../../lib/api/client";
 import { useFiscalYear } from "../../budget-foundation/fiscal-year-context";
-import { getFinancialSummary } from "../api/reports";
+import {
+  downloadFinancialSummary,
+  getFinancialSummary,
+  type ReportExportFormat,
+} from "../api/reports";
 import type { FinancialSummary, ReportMonthlyRealization } from "../types";
 import "../../../styles/reports.css";
 
@@ -42,6 +46,7 @@ export function ReportsPage() {
   const [filters, setFilters] = useState<ReportFilters>(EMPTY_FILTERS);
   const [loading, setLoading] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [exportingFormat, setExportingFormat] = useState<ReportExportFormat | null>(null);
   const requestSequence = useRef(0);
 
   const currentFilters =
@@ -155,6 +160,36 @@ export function ReportsPage() {
     });
   }
 
+  async function handleExport(format: ReportExportFormat) {
+    if (!selectedFiscalYear || !activeSummary) {
+      return;
+    }
+
+    setExportingFormat(format);
+    setErrorMessage(null);
+    try {
+      const downloaded = await downloadFinancialSummary(selectedFiscalYear.id, format, {
+        organizationUnitId: currentFilters.organizationUnitId || undefined,
+        month: currentFilters.month || undefined,
+        budgetCategoryId: selectedCategoryId || undefined,
+      });
+      const url = URL.createObjectURL(downloaded.blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = downloaded.filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+    } catch (error) {
+      setErrorMessage(
+        error instanceof ApiError ? error.message : "Gagal mengekspor laporan anggaran.",
+      );
+    } finally {
+      setExportingFormat(null);
+    }
+  }
+
   return (
     <div className="page-stack">
       <section className="page-header">
@@ -187,9 +222,37 @@ export function ReportsPage() {
               membatasi breakdown yang ditampilkan.
             </p>
           </div>
-          <button className="secondary-button" type="button" onClick={resetFilters}>
-            Reset Filter
-          </button>
+          <div className="report-filter-actions">
+            <div className="report-export-actions" aria-label="Ekspor laporan">
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={!activeSummary || loading || exportingFormat !== null}
+                onClick={() => void handleExport("csv")}
+              >
+                {exportingFormat === "csv" ? "Mengekspor..." : "CSV"}
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={!activeSummary || loading || exportingFormat !== null}
+                onClick={() => void handleExport("xlsx")}
+              >
+                {exportingFormat === "xlsx" ? "Mengekspor..." : "Excel"}
+              </button>
+              <button
+                className="secondary-button"
+                type="button"
+                disabled={!activeSummary || loading || exportingFormat !== null}
+                onClick={() => void handleExport("pdf")}
+              >
+                {exportingFormat === "pdf" ? "Mengekspor..." : "PDF"}
+              </button>
+            </div>
+            <button className="secondary-button" type="button" onClick={resetFilters}>
+              Reset Filter
+            </button>
+          </div>
         </div>
 
         <div className="report-filter-grid">
