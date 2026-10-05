@@ -118,7 +118,6 @@ async def _report_scope_unit_ids(
         await session.scalars(
             select(OrganizationUnit).where(
                 OrganizationUnit.organization_id == organization_id,
-                OrganizationUnit.is_active.is_(True),
             )
         )
     ).all()
@@ -201,9 +200,11 @@ async def get_financial_summary(
                 .where(
                     OrganizationUnit.organization_id == organization.id,
                     OrganizationUnit.id.in_(permitted_scope_unit_ids),
-                    OrganizationUnit.is_active.is_(True),
                 )
-                .order_by(OrganizationUnit.name.asc())
+                .order_by(
+                    OrganizationUnit.is_active.desc(),
+                    OrganizationUnit.name.asc(),
+                )
             )
         )
         .tuples()

@@ -8,23 +8,26 @@
 - Phase 3 — Budget Plan
 - Phase 4 — Realization
 - CP-09 — Phase 4 Realization Complete
-- Phase 5A — Reporting Foundation & Financial Summary API
+- Phase 5A — Reporting Foundation
+- Phase 5B — Reports UI & Filters
+- Phase 5C — CSV / Excel / PDF Export
 
 ## Current
 
-### Phase 5B — Reports UI & Filters
+### Phase 5D — Reporting Hardening & Phase 5 Completion
 
-Implementation adds:
+Hardening covers:
 
-- scoped server-side organization-unit filtering;
-- report section navigation;
-- Unit / Month / Category filters;
-- detailed Unit and Category tables;
-- monthly realization visualization;
-- explicit loading / empty / error / active-filter states;
-- stale report-response protection.
+- historical visibility for inactive organizational units;
+- anti-cache and `nosniff` headers on financial reports/exports;
+- CSV spreadsheet-formula injection protection;
+- explicit filter metadata in exported files;
+- invalid category-filter rejection;
+- PDF long-line wrapping;
+- responsive report stylesheet cleanup;
+- final Phase 5 regression verification.
 
-## Next after Phase 5B validation
+## Next after Phase 5D validation and merge
 
-- Phase 5C — CSV / Excel / PDF Export
-- Phase 5D — Reporting Hardening & Phase 5 Completion
+- CP-10 — Phase 5 Monitoring & Reporting Complete
+- Phase 6 — next implementation phase from the project roadmap

@@ -1,9 +1,9 @@
-# PROJECT CONTEXT — SIMA through Phase 5B
+# PROJECT CONTEXT — SIMA through Phase 5D
 
-SIMA is an annual budget planning and monitoring application built with React + TypeScript,
-FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
+SIMA is an annual budget planning and monitoring application using React + TypeScript, FastAPI,
+PostgreSQL, SQLAlchemy, Alembic, and Docker.
 
-## Completed milestones
+## Completed implementation before this phase
 
 - Phase 0 — Repository & Tooling
 - Phase 1 — Foundation
@@ -11,28 +11,25 @@ FastAPI, PostgreSQL, SQLAlchemy, Alembic, and Docker.
 - Phase 3 — Budget Plan
 - Phase 4 — Realization
 - CP-09 — Phase 4 Realization Complete
-- Phase 5A — Reporting Foundation & Financial Summary API
+- Phase 5A — Canonical Reporting Foundation
+- Phase 5B — Reports UI & Scoped Filters
+- Phase 5C — CSV / Excel / PDF Export
 
-## Current work — Phase 5B
+## Phase 5D
 
-Phase 5B turns the canonical reporting read model into an operational report UI.
+Phase 5D closes Monitoring & Reporting.
 
-The server accepts an optional `organization_unit_id` report filter. The requested unit must be
-inside the user's existing `reports.view` scope. A unit outside that scope is rejected.
+Historical reports retain inactive organization units when those units remain inside the caller's
+authorized report scope. Deactivating a unit therefore does not erase historical allocation,
+commitment, or realization visibility.
 
-The report screen now provides:
+Financial report JSON and export downloads are marked private/no-store and use `nosniff`.
 
-- report section navigation;
-- organization-unit filter;
-- month filter;
-- category filter;
-- expanded unit financial table;
-- monthly realization bar visualization;
-- category commitment / plan-pipeline breakdown.
+CSV protects configurable/master-data text against spreadsheet formula injection. Export files
+contain active Unit, Month, and Category filter metadata. PDF output wraps long lines rather than
+silently truncating them.
 
-## Reporting semantics
-
-Canonical formulas remain server-owned:
+Canonical financial semantics remain server-owned:
 
 ```text
 Available             = Allocated - Committed
@@ -40,27 +37,15 @@ Remaining to Realize  = Committed - Realized
 Utilization           = Realized / Committed * 100
 ```
 
-The organization-unit filter recalculates the canonical report for the selected permitted unit.
+Reversed and cancelled realization records remain historical and do not inflate canonical realized
+or draft-pipeline totals.
 
-The month filter limits only the monthly visualization; cumulative fiscal-year totals remain
-cumulative.
+## Completion
 
-The category filter limits the category plan breakdown only. Category-level Realized is not shown
-because Realization is not item/category attributed in the current domain model.
-
-## Reporting architecture
+After `make phase5d-check`, browser smoke testing, GitHub CI, and merge to `main`, create:
 
 ```text
-Canonical reporting service/query layer
-        |
-        +--> JSON API
-        +--> Reports UI + filters
-        +--> future CSV / Excel / PDF
+CP-10 — Phase 5 Monitoring & Reporting Complete
 ```
 
-## Next
-
-After Phase 5B validation and merge:
-
-1. Phase 5C — CSV / Excel / PDF Export
-2. Phase 5D — Reporting Hardening & Completion
+Then continue to Phase 6 according to the implementation roadmap.

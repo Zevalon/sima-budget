@@ -29,6 +29,24 @@
   margin-bottom: 4px;
 }
 
+.report-filter-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 10px;
+}
+
+.report-export-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+
+.report-export-actions button:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
 .report-filter-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
@@ -179,5 +197,9 @@
 
   .report-filter-heading {
     display: grid;
+  }
+
+  .report-filter-actions {
+    justify-content: flex-start;
   }
 }
