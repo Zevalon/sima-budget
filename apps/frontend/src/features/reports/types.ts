@@ -1,3 +1,9 @@
+export type ReportUnitOption = {
+  organization_unit_id: string;
+  organization_unit_code: string;
+  organization_unit_name: string;
+};
+
 export type ReportUnitSummary = {
   organization_unit_id: string;
   organization_unit_code: string;
@@ -30,6 +36,7 @@ export type FinancialSummary = {
   fiscal_year_id: string;
   fiscal_year_code: string;
   fiscal_year_status: string;
+  organization_unit_filter_id: string | null;
   annual_budget_id: string | null;
   annual_budget_status: string | null;
   organization_annual_budget_amount: string | null;
@@ -46,6 +53,7 @@ export type FinancialSummary = {
   allocation_count: number;
   approved_plan_count: number;
   realization_count: number;
+  unit_filter_options: ReportUnitOption[];
   unit_summaries: ReportUnitSummary[];
   monthly_realization: ReportMonthlyRealization[];
   category_plan_summaries: ReportCategoryPlanSummary[];

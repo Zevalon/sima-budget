@@ -21,6 +21,7 @@ from app.modules.reports.schemas import (
     FinancialSummaryResponse,
     ReportCategoryPlanSummary,
     ReportMonthlyRealization,
+    ReportUnitOption,
     ReportUnitSummary,
 )
 from app.modules.unit_allocations.models import UnitAllocation
@@ -61,8 +62,23 @@ def utilization_percent(realized: Decimal, committed: Decimal) -> Decimal:
     if committed <= ZERO:
         return PERCENT_ZERO
     return ((realized / committed) * Decimal("100")).quantize(
-        Decimal("0.01"), rounding=ROUND_HALF_UP
+        Decimal("0.01"),
+        rounding=ROUND_HALF_UP,
     )
+
+
+def resolve_requested_scope(
+    permitted_unit_ids: set[UUID],
+    requested_unit_id: UUID | None,
+) -> set[UUID]:
+    if requested_unit_id is None:
+        return set(permitted_unit_ids)
+    if requested_unit_id not in permitted_unit_ids:
+        raise HTTPException(
+            status_code=status.HTTP_403_FORBIDDEN,
+            detail="Unit organisasi berada di luar scope laporan Anda.",
+        )
+    return {requested_unit_id}
 
 
 def _descendant_ids(
@@ -153,6 +169,7 @@ async def get_financial_summary(
     *,
     fiscal_year_id: UUID,
     user_id: UUID,
+    organization_unit_id: UUID | None = None,
 ) -> FinancialSummaryResponse:
     organization = await get_user_organization(session, user_id)
     fiscal_year = await session.scalar(
@@ -167,11 +184,47 @@ async def get_financial_summary(
             detail="Tahun anggaran tidak ditemukan.",
         )
 
-    scope_unit_ids, has_all_scope = await _report_scope_unit_ids(
+    permitted_scope_unit_ids, has_all_scope = await _report_scope_unit_ids(
         session,
         user_id=user_id,
         organization_id=organization.id,
     )
+
+    unit_filter_rows = (
+        (
+            await session.execute(
+                select(
+                    OrganizationUnit.id,
+                    OrganizationUnit.code,
+                    OrganizationUnit.name,
+                )
+                .where(
+                    OrganizationUnit.organization_id == organization.id,
+                    OrganizationUnit.id.in_(permitted_scope_unit_ids),
+                    OrganizationUnit.is_active.is_(True),
+                )
+                .order_by(OrganizationUnit.name.asc())
+            )
+        )
+        .tuples()
+        .all()
+        if permitted_scope_unit_ids
+        else []
+    )
+    unit_filter_options = [
+        ReportUnitOption(
+            organization_unit_id=unit_id,
+            organization_unit_code=unit_code,
+            organization_unit_name=unit_name,
+        )
+        for unit_id, unit_code, unit_name in unit_filter_rows
+    ]
+
+    scope_unit_ids = resolve_requested_scope(
+        permitted_scope_unit_ids,
+        organization_unit_id,
+    )
+    has_all_scope = has_all_scope and organization_unit_id is None
 
     annual_budget = await session.scalar(
         select(AnnualBudget).where(
@@ -243,16 +296,14 @@ async def get_financial_summary(
         else []
     )
 
-    for organization_unit_id, plan_status, total_amount in plan_rows:
+    for unit_id, plan_status, total_amount in plan_rows:
         total = normalize_amount(total_amount)
         if plan_status == "APPROVED":
-            committed_by_unit[organization_unit_id] = normalize_amount(
-                committed_by_unit[organization_unit_id] + total
-            )
+            committed_by_unit[unit_id] = normalize_amount(committed_by_unit[unit_id] + total)
             approved_plan_count += 1
         elif plan_status in {"DRAFT", "PENDING_APPROVAL"}:
-            plan_pipeline_by_unit[organization_unit_id] = normalize_amount(
-                plan_pipeline_by_unit[organization_unit_id] + total
+            plan_pipeline_by_unit[unit_id] = normalize_amount(
+                plan_pipeline_by_unit[unit_id] + total
             )
 
     realized_by_unit: dict[UUID, Decimal] = defaultdict(lambda: ZERO)
@@ -384,7 +435,10 @@ async def get_financial_summary(
             committed_amount=values.committed,
             draft_pipeline_amount=values.pipeline,
         )
-        for category_id, values in sorted(category_totals.items(), key=lambda item: item[1].name)
+        for category_id, values in sorted(
+            category_totals.items(),
+            key=lambda item: item[1].name,
+        )
     ]
 
     monthly = [
@@ -400,6 +454,7 @@ async def get_financial_summary(
         fiscal_year_id=fiscal_year.id,
         fiscal_year_code=fiscal_year.code,
         fiscal_year_status=FiscalYearStatus(fiscal_year.status),
+        organization_unit_filter_id=organization_unit_id,
         annual_budget_id=annual_budget.id if annual_budget is not None else None,
         annual_budget_status=(
             AnnualBudgetStatus(annual_budget.status) if annual_budget is not None else None
@@ -418,6 +473,7 @@ async def get_financial_summary(
         allocation_count=len(allocation_rows),
         approved_plan_count=approved_plan_count,
         realization_count=realization_count,
+        unit_filter_options=unit_filter_options,
         unit_summaries=unit_summaries,
         monthly_realization=monthly,
         category_plan_summaries=category_summaries,
