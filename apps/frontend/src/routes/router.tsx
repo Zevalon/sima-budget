@@ -20,6 +20,7 @@ import { BudgetPlansPage } from "../features/budget-plans/pages/BudgetPlansPage"
 import { AuditLogPage } from "../features/foundation/pages/AuditLogPage";
 import { SettingsPage } from "../features/foundation/pages/SettingsPage";
 import { RealizationsPage } from "../features/realizations/pages/RealizationsPage";
+import { ReportsPage } from "../features/reports/pages/ReportsPage";
 import { UnitAllocationsPage } from "../features/unit-allocations/pages/UnitAllocationsPage";
 import { NotFoundPage } from "../features/system/pages/NotFoundPage";
 import { AppShell } from "../layouts/AppShell";
@@ -77,6 +78,15 @@ export const router = createBrowserRouter([
               {
                 path: "realizations",
                 element: <RealizationsPage />,
+              },
+            ],
+          },
+          {
+            element: <PermissionRoute anyOf={["reports.view"]} />,
+            children: [
+              {
+                path: "reports",
+                element: <ReportsPage />,
               },
             ],
           },

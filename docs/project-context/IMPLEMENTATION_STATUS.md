@@ -6,24 +6,23 @@
 - Phase 1 — Foundation
 - Phase 2 — Budget Foundation
 - Phase 3 — Budget Plan
-- Phase 4A — Realization Core
-- Phase 4B — Realization Correction, Cancellation & Reversal
-- Phase 4C — Realization Aggregates & Monitoring
+- Phase 4 — Realization
+- CP-09 — Phase 4 Realization Complete
 
 ## Current
 
-### Phase 4D — Realization Hardening & Phase 4 Completion
+### Phase 5A — Reporting Foundation & Financial Summary API
 
-Implementation hardens:
+Implementation establishes:
 
-- realization workflow identity using `row_version + status + plan_version_id`;
-- stale update/post/cancel/reverse/correction protection;
-- source row-version mutation when correction lineage is created;
-- final scoped-access verification;
-- consistency between realization context and Unit Allocation aggregates;
-- final Phase 4 regression gate.
+- `reports.view` permission with existing RBAC scopes;
+- one canonical financial-summary calculation layer;
+- scoped Unit / Monthly / Category plan summaries;
+- minimal report screen for read-model validation;
+- regression verification against the completed realization domain.
 
-## Next after Phase 4D validation
+## Next after Phase 5A validation
 
-- CP-09 — Phase 4 Realization Complete
-- Phase 5 — Monitoring, Reporting & Export
+- Phase 5B — Reports UI & Filters
+- Phase 5C — CSV / Excel / PDF Export
+- Phase 5D — Reporting Hardening & Phase 5 Completion
