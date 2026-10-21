@@ -6,6 +6,7 @@ from collections.abc import Iterable
 from dataclasses import dataclass
 from decimal import Decimal
 from html import escape
+from textwrap import wrap
 from typing import Literal
 from uuid import UUID
 from zipfile import ZIP_DEFLATED, ZipFile
@@ -43,6 +44,47 @@ def re_sub_filename(value: str) -> str:
     return cleaned.strip("-")
 
 
+def csv_safe_text(value: str) -> str:
+    sanitized = value.replace("\x00", "")
+    stripped = sanitized.lstrip()
+    if stripped.startswith(("=", "+", "-", "@")):
+        return "'" + sanitized
+    return sanitized
+
+
+def _unit_filter_label(summary: FinancialSummaryResponse) -> str:
+    if summary.organization_unit_filter_id is None:
+        return "Semua unit dalam scope"
+    for item in summary.unit_filter_options:
+        if item.organization_unit_id == summary.organization_unit_filter_id:
+            return f"{item.organization_unit_code} - {item.organization_unit_name}"
+    return "Unit terpilih"
+
+
+def _month_filter_label(
+    summary: FinancialSummaryResponse,
+    month: int | None,
+) -> str:
+    if month is None:
+        return "Semua bulan"
+    for item in summary.monthly_realization:
+        if item.month == month:
+            return item.month_label
+    return str(month)
+
+
+def _category_filter_label(
+    summary: FinancialSummaryResponse,
+    category_id: UUID | None,
+) -> str:
+    if category_id is None:
+        return "Semua kategori"
+    for item in summary.category_plan_summaries:
+        if item.budget_category_id == category_id:
+            return f"{item.budget_category_code} - {item.budget_category_name}"
+    return "Kategori terpilih"
+
+
 def _filtered_months(
     summary: FinancialSummaryResponse,
     month: int | None,
@@ -72,8 +114,16 @@ def build_csv_export(
     buffer = io.StringIO(newline="")
     writer = csv.writer(buffer)
     writer.writerow(["SIMA - Laporan Anggaran"])
-    writer.writerow(["Tahun Anggaran", summary.fiscal_year_code])
+    writer.writerow(["Tahun Anggaran", csv_safe_text(summary.fiscal_year_code)])
     writer.writerow(["Status Tahun", summary.fiscal_year_status.value])
+    writer.writerow(["Filter Unit", csv_safe_text(_unit_filter_label(summary))])
+    writer.writerow(["Filter Bulan", csv_safe_text(_month_filter_label(summary, month))])
+    writer.writerow(
+        [
+            "Filter Kategori",
+            csv_safe_text(_category_filter_label(summary, category_id)),
+        ]
+    )
     writer.writerow([])
     writer.writerow(["Ringkasan", "Nilai"])
     writer.writerow(["Pagu Scope", f"{summary.scope_budget_amount:.2f}"])
@@ -109,8 +159,8 @@ def build_csv_export(
     for unit_item in summary.unit_summaries:
         writer.writerow(
             [
-                unit_item.organization_unit_code,
-                unit_item.organization_unit_name,
+                csv_safe_text(unit_item.organization_unit_code),
+                csv_safe_text(unit_item.organization_unit_name),
                 f"{unit_item.allocated_amount:.2f}",
                 f"{unit_item.committed_amount:.2f}",
                 f"{unit_item.draft_pipeline_amount:.2f}",
@@ -125,15 +175,20 @@ def build_csv_export(
     writer.writerow([])
     writer.writerow(["Month", "Realized"])
     for month_item in _filtered_months(summary, month):
-        writer.writerow([month_item.month_label, f"{month_item.realized_amount:.2f}"])
+        writer.writerow(
+            [
+                csv_safe_text(month_item.month_label),
+                f"{month_item.realized_amount:.2f}",
+            ]
+        )
 
     writer.writerow([])
     writer.writerow(["Category Code", "Category Name", "Committed", "Draft Plan Pipeline"])
     for category_item in _filtered_categories(summary, category_id):
         writer.writerow(
             [
-                category_item.budget_category_code,
-                category_item.budget_category_name,
+                csv_safe_text(category_item.budget_category_code),
+                csv_safe_text(category_item.budget_category_name),
                 f"{category_item.committed_amount:.2f}",
                 f"{category_item.draft_pipeline_amount:.2f}",
             ]
@@ -192,6 +247,9 @@ def build_xlsx_export(
         ["Metric", "Value"],
         ["Fiscal Year", summary.fiscal_year_code],
         ["Fiscal Year Status", summary.fiscal_year_status.value],
+        ["Filter Unit", _unit_filter_label(summary)],
+        ["Filter Bulan", _month_filter_label(summary, month)],
+        ["Filter Kategori", _category_filter_label(summary, category_id)],
         ["Scope Budget", summary.scope_budget_amount],
         ["Allocated", summary.allocated_amount],
         ["Committed", summary.committed_amount],
@@ -379,6 +437,9 @@ def _pdf_lines(
         "SIMA - Laporan Anggaran",
         f"Tahun Anggaran: {summary.fiscal_year_code}",
         f"Status Tahun: {summary.fiscal_year_status.value}",
+        f"Filter Unit: {_unit_filter_label(summary)}",
+        f"Filter Bulan: {_month_filter_label(summary, month)}",
+        f"Filter Kategori: {_category_filter_label(summary, category_id)}",
         "",
         "RINGKASAN",
         f"{scope_label}: {_currency_text(summary.scope_budget_amount)}",
@@ -434,7 +495,21 @@ def _pdf_lines(
             "dicatat pada level Budget Plan, bukan pada item/kategori.",
         ]
     )
-    return [line[:90] for line in lines]
+    wrapped_lines: list[str] = []
+    for line in lines:
+        if not line:
+            wrapped_lines.append("")
+            continue
+        wrapped_lines.extend(
+            wrap(
+                line,
+                width=90,
+                break_long_words=False,
+                break_on_hyphens=False,
+            )
+            or [""]
+        )
+    return wrapped_lines
 
 
 def _build_simple_pdf(lines: Iterable[str]) -> bytes:
